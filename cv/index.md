@@ -1,1 +1,6 @@
-# This is CV
+---
+layout: page
+title: This CV
+---
+
+<!-- # This is CV -->

@@ -13,8 +13,9 @@
 # you will see them accessed via {{ site.title }}, {{ site.email }}, and so on.
 # You can create any custom variable you would like, and they will be accessible
 # in the templates via {{ site.myvariable }}.
-title: Some thoughts on deep learning
+title: Home
 email: yangchangjun010@hotmail.com
+permalink: /blog/:year/:month/:day/:title
 description: >- # this means to ignore newlines until "baseurl:"
   A shallow summary of deep learning
 baseurl: "" # the subpath of your site, e.g. /blog

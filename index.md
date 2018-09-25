@@ -1,7 +1,8 @@
 ---
-# Feel free to add content and custom Front Matter to this file.
-# To modify the layout, see https://jekyllrb.com/docs/themes/#overriding-theme-defaults
-
-layout: home
+layout: default
+title: 关于深度学习的简单总结
 ---
-# Some thoughts on deep learning
+<div class="blurb">
+  <h1>关于深度学习的简单总结</h1>
+	<p>我是一个iOS开发者,在 <em>Udacity</em> 学习<em>深度学习</em>,还有<em>计算机视觉</em>,这个网站我的学习笔记,还有一些思考. <a href="/about">Read more about my life...</a></p>
+</div><!-- /.blurb -->
