@@ -51,3 +51,12 @@ def softmax(L):
 
 ### 多类别交叉墒(Multi-Class Cross-Entropy)
 ![](/resource/basic_concept/cross_entropy3.png)
+
+### 误差函数(Error function, criterion)
+![](/resource/basic_concept/error_function.png)
+交叉墒误差函数,👈左边为二元分类问题的误差函数,👉右边为多元分类问题的误差函数,
+其他误差函数还有均方差(MSE),L1,kl,详见[here](https://pytorch.org/docs/stable/nn.html#id50)
+
+### 梯度下降(Gradient Descent)
+![](/resource/basic_concept/dradient_descent.png)
+搭建好网络结构之后,会随机初始化权重weight,一开始的结果可能会比较差,误差函数比较大,通过对误差函数进行求导,按一定比率 α (学习率 learning rate)对权重进行更新,最终,会得到比较好的模型.
