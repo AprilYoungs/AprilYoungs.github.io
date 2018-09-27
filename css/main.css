@@ -39,7 +39,9 @@ footer {
 }
 
 img {
-  width:100%;
+  width: auto;
+  width: 100%;
+
 }
 
 ul.posts {
@@ -51,7 +53,7 @@ ul.posts li {
     list-style: none;
 }
 
-code
-{
-  background: #fff;
+code {
+  font-size: 1.25em;
+  font-style: italic;
 }

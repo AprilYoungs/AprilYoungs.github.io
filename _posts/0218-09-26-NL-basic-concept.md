@@ -26,6 +26,7 @@ def softmax(L):
     expL = np.exp(L)
     return expL/expL.sum()
 ```
+
 分类问题的预测结果使用**softmax**作为激活函数,转化之后的结果加总的和为 100%,每个值代表一个预测结果的可能性
 
 ### One-hot Encoding
@@ -59,4 +60,15 @@ def softmax(L):
 
 ### 梯度下降(Gradient Descent)
 ![](/resource/basic_concept/dradient_descent.png)
-搭建好网络结构之后,会随机初始化权重weight,一开始的结果可能会比较差,误差函数比较大,通过对误差函数进行求导,按一定比率 α (学习率 learning rate)对权重进行更新,最终,会得到比较好的模型.
+搭建好网络结构之后,会随机初始化权重weight,一开始的结果可能会比较差,误差函数比较大,通过对误差函数进行求导,并按一定比率 α (学习率 learning rate)对权重进行更新,最终,会得到比较好的模型.
+
+### 梯度下降数学推导
+以sigmoid激活函数为例<br>
+sigmoid 型函数的导数
+![](/resource/basic_concept/calculus_1.png)
+![](/resource/basic_concept/calculus_2.png)
+![](/resource/basic_concept/calculus_3.png)
+![](/resource/basic_concept/calculus_4.png)
+![](/resource/basic_concept/calculus_5.png)
+![](/resource/basic_concept/calculus_6.png)
+梯度实际上是标量乘以点的坐标！什么是标量？也就是标签和预测直接的差别。这意味着，如果标签与预测接近（表示点分类正确），该梯度将很小，如果标签与预测差别很大（表示点分类错误），那么此梯度将很大。请记下：小的梯度表示我们将稍微修改下坐标，大的梯度表示我们将大幅度修改坐标。
