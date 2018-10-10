@@ -184,3 +184,60 @@ del_w = [ learnrate * error_term * x[0],
           learnrate * error_term * x[1]]
 # or del_w = learnrate * error_term * x
 ```
+
+### 梯度下降算法
+![](/resource/basic_concept/gradient_descent10.png)
+现在我们知道输出层的误差<img style='height:2em;width:auto' src='/resource/basic_concept/error_term2.png'>,隐藏层误差是<img style='height:2em;width:auto' src='/resource/basic_concept/error_term3.png'><br>
+
+考虑一个简单神经网络,它只有一个隐藏层和一个输出节点.这是通过反向传播更新权重的算法概述:
+
+![](/resource/basic_concept/gradient_descent12.png)
+
+## 过拟合和欠拟合(overfitting & underfitting)
+![](/resource/basic_concept/over_underfit.png)
+![](/resource/basic_concept/over_underfit2.png)
+
+## 早期停止 Early stopping
+![](/resource/basic_concept/early_stop.png)
+当验证精度挺高之后开始降低,而训练精度依然在不断提高,则可以停止训练.
+再继续训练会过拟合,训练精度变高,但是验证精度反倒不高,过拟合时模型泛化能力比较差.
+
+## 避免过拟合的方法
+### 1.正则化(regularization)
+![](/resource/basic_concept/regularization.png)
+![](/resource/basic_concept/regularization2.png)
+如图,同样比例的权重,如果把权重设置得比较大,那么得到的预测结果两级分化比较严重.weight不宜过大.
+![](/resource/basic_concept/regularization3.png)
+人工智能的症结在于坏的模型对预测结果过去确定,好的模型预测结果模棱两可.
+![](/resource/basic_concept/regularization4.png)
+![](/resource/basic_concept/regularization5.png)
+可以通过正则化来调节权重,避免权重过大.
+
+### 2.Dropout
+训练过程中,随机的关闭一定比例的节点,为了其他节点得到更多的训练
+![](/resource/basic_concept/dropout.png)
+
+## 局部最低点
+![](/resource/basic_concept/local_minimal2.png)
+#### 对策:1.随机重新开始
+![](/resource/basic_concept/local_minimal3.png)
+#### 2.动量 Momentum
+![](/resource/basic_concept/mvector.gif)
+![](/resource/basic_concept/mvector2.png)
+选择比较大的步子,可以越过局部低谷,步子的大小受前面步子大小调节,离得越近,影响越大
+
+## 梯度消失
+![](/resource/basic_concept/gradient_disapear.png)
+随着网络层级的加深,误差梯度会逐级减小
+
+## 其他激活函数
+![](/resource/basic_concept/tanh.png)
+![](/resource/basic_concept/relu.png)
+
+## 批次和随机梯度下降 batch&stochastic gradient descent
+![](/resource/basic_concept/batch_sgd.png)
+把所有数据集随机拆包,一次只用其中的一个数据集进行训练,在相同运算量的情况下可以多次更新权重,达到比较的训练效果
+
+## 学习速率衰退
+![](/resource/basic_concept/change_learning_rate.png)
+梯度大的地方,step大,梯度大的地方,step小.
