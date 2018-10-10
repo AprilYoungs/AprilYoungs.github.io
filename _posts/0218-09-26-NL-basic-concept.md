@@ -27,7 +27,7 @@ def softmax(L):
     return expL/expL.sum()
 ```
 
-分类问题的预测结果使用**softmax**作为激活函数,转化之后的结果加总的和为 100%,每个值代表一个预测结果的可能性
+分类问题的预测结果使用**softmax**作为激活函数,转化之后的结果加总为 100%,每个值代表一个预测结果可能发生的概率
 
 ## One-hot Encoding
 ![](/resource/basic_concept/one-hot.png)
@@ -38,6 +38,7 @@ def softmax(L):
 [0,0,0,0,1,0,0],
 ...]``
 这样的数据,计算机才能高效的处理.
+<span>(不过使用PyTorch做分类问题时,不需要手动转化)</span>
 
 ## 最大似然率(maximum likelihood)
 ![](/resource/basic_concept/maximum_likelihood.png)
@@ -55,27 +56,8 @@ def softmax(L):
 
 ### 误差函数(Error function, criterion)
 ![](/resource/basic_concept/error_function.png)
-交叉墒误差函数,👈左边为二元分类问题的误差函数,👉右边为多元分类问题的误差函数,
+交叉墒误差函数:<br>👈左边为二元分类问题的误差函数,👉右边为多元分类问题的误差函数,
 其他误差函数还有均方差(MSE),L1,kl,详见[here](https://pytorch.org/docs/stable/nn.html#id50)
-
-## 梯度下降(Gradient Descent)
-![](/resource/basic_concept/gradient_descent.png)
-搭建好网络结构之后,会随机初始化权重weight,一开始的结果可能会比较差,误差函数比较大,通过对误差函数进行求导,并按一定比率 α (学习率 learning rate)对权重进行更新,最终,会得到比较好的模型.
-
-### 梯度下降数学推导
-以sigmoid激活函数为例<br>
-sigmoid 型函数的导数
-![](/resource/basic_concept/calculus_1.png)
-![](/resource/basic_concept/calculus_2.png)
-![](/resource/basic_concept/calculus_3.png)
-![](/resource/basic_concept/calculus_4.png)
-![](/resource/basic_concept/calculus_5.png)
-![](/resource/basic_concept/calculus_6.png)
-梯度实际上是标量乘以点的坐标！什么是标量？也就是标签和预测直接的差别。这意味着，如果标签与预测接近（表示点分类正确），该梯度将很小，如果标签与预测差别很大（表示点分类错误），那么此梯度将很大。请记下：小的梯度表示我们将稍微修改下坐标，大的梯度表示我们将大幅度修改坐标。
-
-### 梯度下降算法
-![](/resource/basic_concept/gradient_descent2.png)
-对每个数据点进行预测,并更新权重,到error足够小
 
 ## 神经网络架构
 对现实世界的复杂问题,一般不能用二分法进行分类预测,根据实际问题数据集分布情况,采用不同层级的网络结构才能得到比较好的预测结果.
@@ -91,9 +73,7 @@ sigmoid 型函数的导数
 输出层使用 softmax作为激活函数,预测不同类别的概率
 
 ## 前向反馈 (feedforward)
-前向反馈是神经网络用来将输入变成输出的流程.
-![](/resource/basic_concept/feed_forward.png)
-神经网络的误差函数
+前向反馈是神经网络用来将输入变成输出的过程.
 ![](/resource/basic_concept/nn_error_fuction.png)
 
 ## 反向传播 (backpropagation function)
@@ -101,7 +81,7 @@ sigmoid 型函数的导数
 * 进行前向反馈运算.
 * 将模型的输出与期望的输出进行比较.
 * 计算误差.
-* 向后运行前向反馈运算(反向传播),将误差分散到每个权重上.
+* 向后运行前向反馈运算(反向传播),将误差分散到每个权重上.-》梯度下降
 * 更新权重,并获得更好的模型.
 * 继续此流程,直到获得好的模型.
 ![](/resource/basic_concept/back_propagation.png)
@@ -110,6 +90,7 @@ sigmoid 型函数的导数
 ![](/resource/basic_concept/chain_rule.png)
 ![](/resource/basic_concept/chain_rule2.png)
 ![](/resource/basic_concept/chain_rule3.png)
+[复合函数的求导](https://baike.baidu.com/item/复合函数求导法则/15792114?fr=aladdin),
 梯度传递的计算方式
 
 ## 实现梯度下降
@@ -119,3 +100,87 @@ sigmoid 型函数的导数
 #### 注意事项
 因为权重会走向梯度带它去的位置，它们有可能停留在误差小，但不是最小的地方。这个点被称作局部最低点。如果权重初始值有错，梯度下降可能会使得权重陷入局部最优，例如下图所示。
 ![](/resource/basic_concept/local_minimal.png)
+<span>题外话:处于局部最优,就像人生中走到某种境地,以为自己不可能有更高的存在,环顾四周都比自己差;这个时候可以试着重新开始,跳出舒适区,换一个圈子,或许有更好的成就.</span>
+
+### 梯度下降:数学
+![](/resource/basic_concept/gradient_descent4.png)
+依据数据集的一个数据点x<sub>i</sub>,可以绘制如上权重w与误差函数的曲线.如果想减小误差E,可以把当前的权重w 减去 gradient(权重的偏导数),来获得比较小的误差E.<br><br>
+<img style="width:auto" src="/resource/basic_concept/gradient_descent5.png">
+<br>每次按一定比率*η*(学习率)更新权重<br><br>
+<img style="width:auto" src="/resource/basic_concept/gradient_descent6.png"><br>
+<img style="width:auto" src="/resource/basic_concept/gradient_descent7.png">
+<br> 定义一个误差项(Error term)<img style="width:auto;height:2.0em" src="/resource/basic_concept/error_term.png"><br><br>
+<img style="width:auto" src="/resource/basic_concept/gradient_descent8.png">
+<br>多个输出的时候,权重更新项w<sub>ij</sub>如上图
+
+
+### 梯度下降数学推导
+![](/resource/basic_concept/gradient_descent.png)
+搭建好网络结构之后,会随机初始化权重weight,一开始的结果可能会比较差,误差函数比较大,通过对误差函数进行求导,并按一定比率 α (学习率 learning rate)对权重进行更新,最终,会得到比较好的模型.<br><br>
+#### 以sigmoid激活函数为例
+sigmoid 型函数的导数
+<img style="width:auto" src="/resource/basic_concept/calculus_1.png">
+![](/resource/basic_concept/calculus_2.png)
+![](/resource/basic_concept/calculus_3.png)
+![](/resource/basic_concept/calculus_4.png)
+![](/resource/basic_concept/calculus_5.png)
+![](/resource/basic_concept/calculus_6.png)
+梯度实际上是标量乘以点的坐标！什么是标量？也就是标签和预测直接的差别。这意味着，如果标签与预测接近（表示点分类正确），该梯度将很小，如果标签与预测差别很大（表示点分类错误），那么此梯度将很大。请记下：小的梯度表示我们将稍微修改下坐标，大的梯度表示我们将大幅度修改坐标。
+
+### 梯度下降算法
+![](/resource/basic_concept/gradient_descent2.png)
+对每个数据点进行预测,并更新权重,直到error足够小
+
+## 梯度下降:
+![](/resource/basic_concept/gradient_descent9.png)
+```python
+# Defining the sigmoid function for activations
+# 定义 sigmoid 激活函数
+def sigmoid(x):
+    return 1/(1+np.exp(-x))
+
+# Derivative of the sigmoid function
+# 激活函数的导数
+def sigmoid_prime(x):
+    return sigmoid(x) * (1 - sigmoid(x))
+
+# Input data
+# 输入数据
+x = np.array([0.1, 0.3])
+# Target
+# 目标
+y = 0.2
+# Input to output weights
+# 输入到输出的权重
+weights = np.array([-0.8, 0.5])
+
+# The learning rate, eta in the weight step equation
+# 权重更新的学习率
+learnrate = 0.5
+
+# the linear combination performed by the node (h in f(h) and f'(h))
+# 输入和权重的线性组合
+h = x[0]*weights[0] + x[1]*weights[1]
+# or h = np.dot(x, weights)
+
+# The neural network output (y-hat)
+# 神经网络输出
+nn_output = sigmoid(h)
+
+# output error (y - y-hat)
+# 输出误差
+error = y - nn_output
+
+# output gradient (f'(h))
+# 输出梯度
+output_grad = sigmoid_prime(h)
+
+# error term (lowercase delta)
+error_term = error * output_grad
+
+# Gradient descent step
+# 梯度下降一步
+del_w = [ learnrate * error_term * x[0],
+          learnrate * error_term * x[1]]
+# or del_w = learnrate * error_term * x
+```
