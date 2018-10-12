@@ -5,6 +5,9 @@ date:   2018-09-26
 categories: concept
 ---
 
+相关练习项目:[一个简单的神经网络](https://github.com/AprilYoungs/Deep-learning/tree/master/DNN-basic-concept/first-neural-network)
+
+
 ## 感知器 (perceptron)
 即信号输入元, 单个的数据源, 比如人的眼睛,耳朵,鼻子,都是感知器<br>
 
