@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "决策树与随机森林"
-date:   2019-05-12
+date:   2019-05-18
 categories: notes
 ---
 
@@ -104,13 +104,35 @@ IV(a)是属性固有的值, 类别越多,IV(a)越大
 
 ** 优点：泛化能力强， 不容易过拟合；对缺失值不敏感； 不需要对高维数据做特征选择；容易进行并行化计算<br>
 ** 缺点：取值划分比较多的属性有优势
-## ** key words
 
-read:  RF out of bag data
-bootstrap
+#### Boosting-GDBT(Gradient Boosting Decision Tree)
+Boosting，集成学习方法之一.
+一种用来提高弱分类算法准确度的方法，属于迭代算法.
+通过不断地使用一个弱学习器 **弥补** 前一个弱学习器的“不足”的过程， 来 **串行** 地构造一个较强的学习器，能够使目标函数值足够小.
 
-generation errors
+**构建过程:**
+1. 先用一个初始值来学习一棵决策树(一个主要特征, 做粗略的预测)
+2. 叶子处可以得到预测的值，以及预测之后的残差(个体的差异, 会造成残差)
+3. 然后后面的决策树就要基于前面决策树的残差来学习
+4. 直到预测值和真实值的残差为零(都是同一类别)
+5. 最后对于测试样本的预测值，就是前面许多棵决策树 预测值的累加
 
-GBDT
-AdaBoost?
-XGboost?
+** 一个生活中的例子, 比如预测人的身高
+1. 首先通过 性别来预测, 男的 172cm, 女的 162cm.
+2. 通过地区, 北方人+3cm, 南方人-3cm.
+3. 还其他特征, 依次类推
+
+把所有可以用到的信息都用来预测, 不同特征会在不同程度影响预测值的大小
+
+#### key words
+
+[RF out of bag data](https://en.wikipedia.org/wiki/Out-of-bag_error)包外错误, 随机森林的算法每次会随机从数据中取样本进行训练, 被取的样本之外的数据就是包外数据, 可以通过评估决策树模型在包外数据上的表现来评估单棵决策树训练的好坏.
+
+[bootstrap](https://zh.wikipedia.org/wiki/自助法)在数据中有放回的随机抽取数据
+
+[GBDT](https://en.wikipedia.org/wiki/Gradient_boosting)
+[AdaBoost](https://zh.wikipedia.org/wiki/AdaBoost)
+[XGboost](https://zh.wikipedia.org/wiki/XGBoost)一个提供算法 梯度下降 的 framework
+
+#### other resources
+[A visual introduction to machine learning](http://www.r2d3.us/visual-intro-to-machine-learning-part-1/)
