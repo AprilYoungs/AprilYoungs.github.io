@@ -128,3 +128,32 @@ python -m pip install --upgrade pip
 #### 参数搜索
 sklearn 中使用GridSearchCV, 遍历多种参数组合, 通过交叉寻找最优效果的参数.
 ![](/resource/feature_extraction/grid_search.png)
+
+#### Matplotlib 标题设置中文乱码解决
+
+1. 下载中文字体（黑体，看准系统版本）
+[SimHei](https://www.fontpalace.com/font-details/SimHei/)
+2. 解压之后在系统当中安装好，我的是Mac，打开字体册就可以安装了，Windows的在网上搜一下吧
+3. 找到matplotlib字体文件夹
+```shell
+# 查找 matplotlib 在电脑中的位置
+pip show --files matplotlib
+```
+例如：matplotlib/mpl-data/fonts/ttf，将SimHei.ttf拷贝到ttf文件夹下面
+![](/resource/feature_extraction/matplot_font.jpg)
+4. 修改配置文件matplotlibrc  <br>
+同样在matplotlib/mpl-data/fonts目录下面，修改下面三项配置<br>
+font.family: sans-serif<br>
+font.sans-serif : SimHei, Bitstream Vera Sans, Lucida Grande, Verdana, Geneva, Lucid, Arial, Helvetica, Avant Garde, sans-serif  <br> axes.unicode_minus:False，#作用就是解决负号'-'显示为方块的问题<br><br>
+假如你只做到了这里，那要小心喽，代码里面还是会错，画图还是会显示方块
+5. 最重要的一步来了，改了配置之后并不会生效，需要重新加载字体，在Python中运行如下代码即可：
+```python
+import matplotlib as mpl
+mpl.rcParams['font.sans-serif'] = ['SimHei']
+from matplotlib.font_manager import _rebuild
+ _rebuild() #reload一下, 只有第一次添加font文件需要调用
+# 这样不需要调用plt.show()就能显示图表
+%matplotlib inline
+# mac下面显示清晰图表, 不加会模糊
+%config InlineBackend.figure_format = 'retina'
+```
