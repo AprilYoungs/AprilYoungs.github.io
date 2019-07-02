@@ -43,3 +43,14 @@ _很多时候，可以用空间换时间，通过存储常量来减少运算量_
 * lookup    O(n)
 * insert    O(1)
 * delete    O(1)
+
+## Stack & Queue
+### Stack
+后进先出
+![](/resource/data_structrue/stack.png)
+### Queue
+先进先出
+![](/resource/data_structrue/queue.png)
+### 常用数据结构的 复杂度
+![](/resource/data_structrue/complexity.png)
+![](/resource/data_structrue/sorting_complexity.png)
