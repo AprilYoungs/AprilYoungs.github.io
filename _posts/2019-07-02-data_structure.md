@@ -14,6 +14,7 @@ categories: notes
 
 ![](/resource/data_structrue/4807654-b85dde77b61f8a33.jpg.png)
 <div style="text-align:center;">O(1), O(n), O(n*n)对应的曲线</div>
+
 ![](/resource/data_structrue/4807654-9d3b7f58b405a618.jpg.png)
 
 ## 空间复杂度
@@ -55,6 +56,68 @@ _很多时候，可以用空间换时间，通过存储常量来减少运算量_
 ![](/resource/data_structrue/complexity.png)
 ![](/resource/data_structrue/sorting_complexity.png)
 
+### 使用例子
+```cpp
+/**
+ Given a string containing just the characters '(', ')', '{', '}', '[' and ']', determine if the input string is valid.
+
+An input string is valid if:
+
+Open brackets must be closed by the same type of brackets.
+Open brackets must be closed in the correct order.
+Note that an empty string is also considered valid.
+ */
+
+#include <iostream>
+#include <string>
+#include <stack>
+#include <vector>
+#include <map>
+using namespace std;
+
+class Solution {
+public:
+    bool isValid(string s) {
+
+        // 1. iterate all elements
+        // 2. find all "(" "{" "[", and record
+        // 3. get the other parts ")", "]", "}", remove the left one, else return false
+        // 4. till the end, if nonthing left, return true, else return false
+        stack<char> cached;
+        map<char, char> parenthesis;
+        parenthesis.insert(pair<char, char>('(', ')'));
+        parenthesis.insert(pair<char, char>('{', '}'));
+        parenthesis.insert(pair<char, char>('[', ']'));
+
+        for(string::iterator it=s.begin(); it!=s.end(); it++){
+
+            if (parenthesis.count(*it))
+            {
+                cached.push(*it);
+            } else if (!cached.empty() && parenthesis[cached.top()] == *it)
+            {
+                cached.pop();
+
+            } else{
+                return false;
+            }
+        }
+
+        return cached.empty();
+    }
+};
+
+int main(){
+    vector<string> testStrs{"()", "()[]{}", "(]", "([)]", "{[]}", "]", "", "("};
+    for(int i=0; i < testStrs.size(); i++)
+    {
+        bool isValid = Solution().isValid(testStrs[i]);
+        cout << isValid << " ";
+    }
+    return 0;
+}
+```
+
 ## PriorityQueue - 优先队列
 正常进、按照优先级出
 >  常用实现方式
@@ -65,3 +128,100 @@ _很多时候，可以用空间换时间，通过存储常量来减少运算量_
 ![](/resource/data_structrue/min_heap.png)
 
 ![](/resource/data_structrue/heap_complexy.png)
+
+### 使用例子
+```
+/**
+ * Your KthLargest object will be instantiated and called as such:
+ * KthLargest* obj = new KthLargest(k, nums);
+ * int param_1 = obj->add(val);
+ * Note:
+ * You may assume that nums' length ≥ k-1 and k ≥ 1.
+ */
+
+/*
+ * int k = 3;
+ * int[] arr = [4,5,8,2];
+ * KthLargest kthLargest = new KthLargest(3, arr);
+ * kthLargest.add(3);   // returns 4
+ * kthLargest.add(5);   // returns 5
+ * kthLargest.add(10);  // returns 5
+ * kthLargest.add(9);   // returns 8
+ * kthLargest.add(4);   // returns 8
+ * */
+```
+```cpp
+// with min priority queue
+class KthLargest {
+    int _k;
+    priority_queue<int, vector<int>, greater<int>> pq{};
+public:
+    KthLargest(int k, vector<int>& nums) {
+        /**
+         * create a qp with size k
+         * 1. make the first pq
+         * 2. run through the whole nums
+         * */
+
+        _k = k;
+        for (int i=0; i<k; i++)
+        {
+            // note: k could greater than the nums' size
+            if(i<nums.size())
+            {
+                pq.push(nums[i]);
+            } else
+            {
+                break;
+            }
+        }
+
+        //run through the whole nums
+        for (int i=k; i<nums.size(); i++)
+        {
+            if(pq.top() < nums[i])
+            {
+                pq.pop();
+                pq.push(nums[i]);
+            }
+        }
+
+    }
+
+    int add(int val) {
+        /**
+         * 1. if pq 's size is or k, make it k
+         * 2. compare the val with the top of the pq, update if needed
+         *
+         */
+
+        if(pq.empty() || pq.size() < _k)
+        {
+            pq.push(val);
+        } else if (val > pq.top())
+        {
+            pq.pop();
+            pq.push(val);
+        }
+
+        return pq.top();
+    }
+};
+
+int main() {
+
+    int k = 3;
+    vector<int> arr{5, -1};
+    KthLargest kthLargest(k, arr);
+
+//    ["KthLargest","add","add","add","add","add"]
+//    [[3,[5,-1]],[2],[1],[-1],[3],[4]]
+    cout << kthLargest.add(2) << endl;   // returns 4
+    cout << kthLargest.add(1) << endl;   // returns 5
+    cout << kthLargest.add(-1) << endl;  // returns 5
+    cout << kthLargest.add(3) << endl;   // returns 8
+    cout << kthLargest.add(4) << endl;   // returns 8
+
+    return 0;
+}
+```
