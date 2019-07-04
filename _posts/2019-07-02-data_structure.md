@@ -44,7 +44,7 @@ _很多时候，可以用空间换时间，通过存储常量来减少运算量_
 * insert    O(1)
 * delete    O(1)
 
-## Stack & Queue
+## Stack & Queue - 栈&队列
 ### Stack
 后进先出
 ![](/resource/data_structrue/stack.png)
@@ -54,3 +54,14 @@ _很多时候，可以用空间换时间，通过存储常量来减少运算量_
 ### 常用数据结构的 复杂度
 ![](/resource/data_structrue/complexity.png)
 ![](/resource/data_structrue/sorting_complexity.png)
+
+## PriorityQueue - 优先队列
+正常进、按照优先级出
+>  常用实现方式
+1. [Heap](https://en.wikipedia.org/wiki/Heap_(data_structure))(Binary, Binomial, Fibonacci)
+2. Binary Search Tree
+
+![](/resource/data_structrue/max_heap.png)
+![](/resource/data_structrue/min_heap.png)
+
+![](/resource/data_structrue/heap_complexy.png)
