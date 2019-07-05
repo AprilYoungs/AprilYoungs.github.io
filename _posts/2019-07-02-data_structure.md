@@ -225,3 +225,12 @@ int main() {
     return 0;
 }
 ```
+
+## HashTable & Set
+### 哈希函数
+> 按照一定规律F(e), 计算出数据元素e，特定的哈希值
+![](/resource/data_structrue/hash_fun.png)
+
+### 哈希碰撞
+> 不同元素的哈希值可能会一样，这就是哈希碰撞。一般是用拉链法解决，如图，遇到哈希值一样的元素，用链表把后面加入的元素链到上一个哈希值一样的元素后面
+![](/resource/data_structrue/hash_collision.png)
