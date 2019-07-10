@@ -236,3 +236,31 @@ int main() {
 ![](/resource/data_structrue/hash_collision.png)
 
 编程中用到的dictionary(map) 和 set 中都不会有重复元素。每个元素会有一个特定的哈希值，每次加入新的元素会先确认原先的集合中是否有 哈希值 一样的元素，如果有就不加入新元素，没有就加入。
+
+## Binary Search Tree (二叉搜索树)
+
+二叉树的结构及各单元的名称， 如下图
+![](/resource/data_structrue/tree_structure.png)
+![](/resource/data_structrue/binary_tree.png)
+链表是特殊的二叉树，二叉树每个节点只有一个子节点时退化成链表
+![](/resource/data_structrue/linked_list.png)
+二叉树是特殊的图， 它没有环形结构，每个节点最多只有两个子节点
+![](/resource/data_structrue/graph.png)
+
+### C++ 实现
+```cpp
+struct TreeNode{
+    int val;
+    TreeNode *left;
+    TreeNode *right;
+    TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+}
+```
+
+**二叉搜索树**（英语：Binary Search Tree），也称二叉搜索树、有序二叉树（英语：ordered binary tree），排序二叉树（英语 sorted binary tree），是指一棵空树或者具有下列性质的二叉树
+
+1. 若任意节点的左子树不空，则左子树上所有结点的值均小于它的根结点的值
+
+2. 若任意节点的右子树不空，则右子树上所有结点的值均大于它的根结点的值；
+
+3. 任意节点的左、右子树也分别为二叉查找树。
