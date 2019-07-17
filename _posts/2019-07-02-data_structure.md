@@ -302,3 +302,59 @@ void postOrder(TreeNode *root, vector<int> &arr)
     }
 }
 ```
+
+## Recursion & (Divide & Conquer) 递归 && 分治
+
+实现伪代码
+
+```cpp
+void recursion(level, param1, param2, ...){
+    
+    // recursion terminator
+    if(level > MAX_LEVEL){
+        print_result;
+        return
+    }
+
+    // process logic in current level
+    process_data(level, data, ...);
+
+    // drill down
+    self.recursion(level+1, p1, ...);
+
+    // reverse the current level status if needed
+    reverse_state(level);
+
+}
+```
+
+递归算法， 必须有一个终止条件， 每次进入函数都去检测是否终止，否则进入递归
+
+```cpp
+result_type divide_conquer(problem, param1, param2, ...){
+    
+    // recursion terminator
+    if (problem == NULL)
+    {
+        print_result
+        return
+    }
+
+    // prepare data
+    data = prepare_data(problem)
+    subProblems = split_problem(problem, data)
+
+    // conquer subproblems
+    subresult1 = divide_conquer(subProblems[0], p1, p2, ...)
+    subresult2 = divide_conquer(subProblems[1], p1, p2, ...)
+    subresult3 = divide_conquer(subProblems[2], p1, p2, ...)
+    ...
+
+    // process and generate the final result
+    result = process_result(subresult1, subresult2, subresult3, ...)
+}
+```
+分治： 分而治之，持续分解问题，直到可以解决为止，然后再把结果进行合并
+
+![](/resource/data_structrue/devide_conquer.png)
+![](/resource/data_structrue/devide_conquer2.png)
