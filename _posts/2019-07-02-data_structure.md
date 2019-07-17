@@ -264,3 +264,41 @@ struct TreeNode{
 2. 若任意节点的右子树不空，则右子树上所有结点的值均大于它的根结点的值；
 
 3. 任意节点的左、右子树也分别为二叉查找树。
+
+## Traversal Binary Tree (二叉树遍历)
+
+二叉树遍历有三种顺序
+![](/resource/data_structrue/preorder.png)
+![](/resource/data_structrue/inorder.png)
+![](/resource/data_structrue/postorder.png)
+
+CPP 实现
+```cpp
+void preOrder(TreeNode *root, vector<int> &arr)
+{
+    if (root) {
+        arr.push_back(root->val);
+        preOrder(root->left, arr);
+        preOrder(root->right, arr);
+    }
+}
+
+void inOrder(TreeNode *root, vector<int> &arr)
+{
+
+    if (root) {
+        inOrder(root->left, arr);
+        arr.push_back(root->val);
+        inOrder(root->right, arr);
+    }
+}
+
+void postOrder(TreeNode *root, vector<int> &arr)
+{
+    if (root) {
+        postOrder(root->left, arr);
+        postOrder(root->right, arr);
+        arr.push_back(root->val);
+    }
+}
+```
