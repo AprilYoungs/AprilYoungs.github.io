@@ -36,11 +36,9 @@ Adding a scriptMessageHandler adds a function
 
 ### 内存泄漏检测 debug memory graph
 使用XCode 9 以后版本可以点击下方的 Debug Memory Graph，来查看当前应用在留在内存中的变量
-![debug memory graph](https://upload-images.jianshu.io/upload_images/3105873-fd6654b05dde5e47.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+![debug memory graph](/resource/ios_web/debugmemory.png)
 
-![控制器没有释放](https://upload-images.jianshu.io/upload_images/3105873-437595da3855a487.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
-
-![webkit引用](https://upload-images.jianshu.io/upload_images/3105873-334651aab80ae82a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+![webkit引用](/resource/ios_web/webscript.png)
 
 
 从上图可以看到同一个使用了WKWebView的控制器，出现了多个实例, 被webkit引用 造成的内存泄漏
@@ -51,7 +49,7 @@ Adding a scriptMessageHandler adds a function
  config.userContentController.add(self, name: messageName)
  webView = WKWebView(frame: view.bounds, configuration: config)
 ```
-![image.png](https://upload-images.jianshu.io/upload_images/3105873-dc7323dc1742c558.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+![image.png](/resource/ios_web/addHandler.png)
 
 这里需要把self换成其他变量，可以使用下面的类把self包一下，变成弱引用即可
 ```swift
