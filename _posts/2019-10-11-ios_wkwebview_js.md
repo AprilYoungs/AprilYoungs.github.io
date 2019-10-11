@@ -37,7 +37,7 @@ Adding a scriptMessageHandler adds a function
 ### 内存泄漏检测 debug memory graph
 使用XCode 9 以后版本可以点击下方的 Debug Memory Graph，来查看当前应用在留在内存中的变量
 ![debug memory graph](/resource/ios_web/debugmemory.png)
-
+![控制器没有释放](/resource/ios_web/memoryStack.png)
 ![webkit引用](/resource/ios_web/webscript.png)
 
 
