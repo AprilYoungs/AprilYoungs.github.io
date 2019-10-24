@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "NSObject 的本质"
+title:  "Object-C 对象的本质"
 date:   2019-10-11
 categories: ios
 ---
@@ -87,5 +87,50 @@ malloc_size((__bridge void *)p) -> 32
 `class_getInstanceSize` 获取实例变量实际使用的空间 
 `malloc_size` 获取变量在内存中实际分配到的空间
 
+### OC对象的分类
+1. instance 
+    实例对象，实例化之后的对象，存有对应类的成员变量，每个`instance`在内存中的地址都不一样
+2. class
+    类对象，存有类信息，在内存中只存了一个，类对象成员对象名和类型，还有关联的实例方法
+3. meta-class
+    元类对象，在内存中只存了一个，存有类方法
+```c
+ // 可以通过实例化 class 来 得到 instance
+        NSObject *obj1 = [[NSObject alloc] init];
+        NSObject *obj2 = [[NSObject alloc] init];
+        NSObject *obj3 = [[NSObject alloc] init];
+        
+        // 获取 class 的三种方式
+        Class class1 = [obj1 class];
+        Class class2 = object_getClass(obj2);
+        Class class3 = [NSObject class];
+        
+        // 使用 object_getClass 获取 class 的meta-class
+        Class metaClass = object_getClass(class1);
+        
+        
+        
+        NSLog(@"Objects -> \n%p,\n%p,\n%p", obj1, obj2, obj3);
+        /**
+         Objects ->
+         0x1005b0de0,
+         0x1005ae040,
+         0x1005add00
+         */
+        
+        NSLog(@"Classes -> \n%p,\n%p,\n%p,\n%d", class1, class2, class3, class_isMetaClass(class3));
+        /**
+         Classes ->
+         0x7fff91d97118,
+         0x7fff91d97118,
+         0x7fff91d97118,
+         0
+         */
+        
+        NSLog(@"Meta Class -> %p, is metaclass %d", metaClass, class_isMetaClass(metaClass));
+        /**
+          Meta Class -> 0x7fff91d970f0, is metaclass 1
+         */
+```
 
 reference: [apple objc4 源码](https://opensource.apple.com/tarballs/objc4/)
