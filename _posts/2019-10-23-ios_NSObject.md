@@ -107,7 +107,7 @@ malloc_size((__bridge void *)p) -> 32
         
         // 使用 object_getClass 获取 class 的meta-class
         Class metaClass = object_getClass(class1);
-        
+        Class metaClass2 = object_getClass(metaClass);
         
         
         NSLog(@"Objects -> \n%p,\n%p,\n%p", obj1, obj2, obj3);
@@ -118,6 +118,7 @@ malloc_size((__bridge void *)p) -> 32
          0x1005add00
          */
         
+        // class 的 isa 指向 meta-class
         NSLog(@"Classes -> \n%p,\n%p,\n%p,\n%d", class1, class2, class3, class_isMetaClass(class3));
         /**
          Classes ->
@@ -127,10 +128,30 @@ malloc_size((__bridge void *)p) -> 32
          0
          */
         
-        NSLog(@"Meta Class -> %p, is metaclass %d", metaClass, class_isMetaClass(metaClass));
+        // meta-class 的isa指向meta-class
+        NSLog(@"Meta Classes -> \n%p\n%p, \n is metaclass %d", metaClass, metaClass2, class_isMetaClass(metaClass));
         /**
-          Meta Class -> 0x7fff91d970f0, is metaclass 1
+          Meta Class ->
+         0x7fff91d970f0,
+         0x7fff91d970f0,
+         is metaclass 1
          */
+```
+`OC` 的 `class` 对象其实是个结构体，`isa` 是一个指向类本身的指针，`instance`的`isa`指向`class`, `class` 的`isa`指向 `meta-class`，`meta-class`的`isa`指向`meta-class`
+```c
+typedef struct objc_class *Class;
+struct objc_class {
+    Class _Nonnull isa;
+    Class _Nullable super_class;
+    const char * _Nonnull name;
+    long version;
+    long info;
+    long instance_size;
+    struct objc_ivar_list * _Nullable ivars;
+    struct objc_method_list * _Nullable * _Nullable methodLists;
+    struct objc_cache * _Nonnull cache;
+    struct objc_protocol_list * _Nullable protocols;
+}
 ```
 
 reference: [apple objc4 源码](https://opensource.apple.com/tarballs/objc4/)
