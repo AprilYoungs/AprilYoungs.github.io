@@ -19,16 +19,14 @@ xcrun -sdk iphoneos clang -arch arm64 -rewrite-objc objcFile.m -o objcFile_arm64
 NSLog(@"Malloc size -> %zd", malloc_size((__bridge void *)obj));
 ```
 * 但NSObject对象内部只使用了8个字节的空间（64bit环境下，可以通过class_getInstanceSize函数获得）
-```Object-C
 
+```Object-C
  NSObject *obj = [[NSObject alloc] init];
-        
         // 获取实例占有内存的空间 8
  NSLog(@"NSOject instance size -> %zu", class_getInstanceSize([NSObject class]));
-        
 ```
 查看源码，可以看到OC对象的最小占用空间是 16 bit，不足 16 bit 时补足到 16 bit.
-![](/resource/nsobject/alloc_size.png)
+![](../resource/nsobject/alloc_size.png)
 
 
 reference: [apple objc4 源码](https://opensource.apple.com/tarballs/objc4/)
