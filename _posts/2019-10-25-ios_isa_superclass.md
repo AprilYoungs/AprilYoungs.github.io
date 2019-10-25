@@ -72,4 +72,5 @@ struct objc_class {
 ```
 
 ![](/resource/isaSuperclass/isaclass.png)
+
 reference: [apple objc4 源码](https://opensource.apple.com/tarballs/objc4/)
