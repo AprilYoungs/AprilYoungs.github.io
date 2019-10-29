@@ -158,5 +158,6 @@ struct class_ro_t {
 };
 ````
 
-[重写了官方的结构体，方便观察Class的内部结构](https://github.com/AprilYoungs/MJ_course/tree/master/ReviewPrepare/02-isa和superclass课件/AYClassStruct)
+[重写了官方的结构体，方便观察Class的内部结构](https://github.com/AprilYoungs/MJ_course/tree/master/ReviewPrepare/02-isa和superclass/AYClassStruct)
+
 reference: [apple objc4 源码](https://opensource.apple.com/tarballs/objc4/)
