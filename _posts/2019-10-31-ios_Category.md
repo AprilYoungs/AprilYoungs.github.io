@@ -1,14 +1,14 @@
 ---
 layout: post
 title:  "Category"
-date:   2019-10-31
+date:   2019-11-07
 categories: ios
 ---
 
-`Category` 即分类，`Objective-C`中的分类的可以给`源类`增加一些类方法、实例方法、还有遵守更多协议(`protocol`), 分类如果有源类方法的实现，会覆盖`源类`的方法.
+`Category` 即分类，`Objective-C`中的分类的可以给`目标类`增加一些类方法、实例方法、还有遵守更多协议(`protocol`), 分类如果有目标类方法的实现，会覆盖`目标类`的方法.
 
 ### Category 的使用
-下面定义一个`AYPerson`类，它是分类的`源类`
+下面定义一个`AYPerson`类，它是分类的`目标类`
 ```objectivec
 @interface AYPerson : NSObject
 @property(nonatomic, assign) NSInteger age;
@@ -69,7 +69,7 @@ AYPerson *p = [[AYPerson alloc] init];
  AYPerson-cateRun
  */
 ```
-分类的方法会合并到源类的方法中，可以跟调用源类方法一样调用
+分类的方法会合并到目标类的方法中，可以跟调用目标类方法一样调用
 
 ### Category 的底层结构
 可以使用如下指令把`object-c`的 `.m` 文件编译出`c++`代码，用来窥探`category`的实现方法
@@ -91,8 +91,8 @@ struct _class_t {
 
 // 分类结构体
 struct _category_t {
-	const char *name;   //源类的名字
-	struct _class_t *cls;   //指向源类的指针
+	const char *name;   //目标类的名字
+	struct _class_t *cls;   //指向目标类的指针
 	const struct _method_list_t *instance_methods; //实例方法列表
 	const struct _method_list_t *class_methods; //类方法列表
 	const struct _protocol_list_t *protocols;   //遵守的协议列表
@@ -118,7 +118,7 @@ __declspec(allocate(".objc_inithooks$B")) static void *OBJC_CATEGORY_SETUP[] = {
 	(void *)&OBJC_CATEGORY_SETUP_$_AYPerson_$_Run,
 };
 ```
-objc 源码分析，category 的调用过程
+objc 源码分析`category`的调用过程
 `objc-os.mm`
 ```cpp
 /***********************************************************************
@@ -259,7 +259,7 @@ void _read_images(header_info **hList, uint32_t hCount, int totalClasses, int un
             category_t *cat = catlist[i];
             Class cls = remapClass(cat->cls);
 
-	   // 寻找分类的源类，没有找到就跳过
+	   		// 寻找分类的目标类，没有找到就跳过
             if (!cls) {
                 // Category's target class is missing (probably weak-linked).
                 // Disavow any knowledge of this category.
@@ -319,7 +319,7 @@ void _read_images(header_info **hList, uint32_t hCount, int totalClasses, int un
     ...
 }
 ```
-上面读取模块的实现中只保留了和处理 `category` 有关的代码，关键是这个操作
+上面读取模块的实现中只保留处理 `category` 有关的代码，关键是这个操作
 ```c
 // Process this category. 
 处理分类
@@ -381,6 +381,7 @@ attachCategories(Class cls, category_list *cats, bool flush_caches)
     protocol_list_t **protolists = (protocol_list_t **)
         malloc(cats->count * sizeof(*protolists));
 
+	// 重新排序-> 后编译的分类，放在数组前面
     // Count backwards through cats to get newest categories first
     int mcount = 0;
     int propcount = 0;
@@ -437,13 +438,13 @@ void attachLists(List* const * addedLists, uint32_t addedCount) {
         // many lists -> many lists
         uint32_t oldCount = array()->count;
         uint32_t newCount = oldCount + addedCount;
-	// 重新分类空间，扩容
+		// 重新分类空间，扩容
         setArray((array_t *)realloc(array(), array_t::byteSize(newCount)));
         array()->count = newCount;
-	// 把原来的方法移动到数组后面
+		// 把原来的方法移动到数组后面
         memmove(array()->lists + addedCount, array()->lists, 
                 oldCount * sizeof(array()->lists[0]));
-	// 把新的方法添加到数组前面
+		// 把新的方法添加到数组前面
         memcpy(array()->lists, addedLists, 
                addedCount * sizeof(array()->lists[0]));
     }
@@ -634,6 +635,36 @@ void add_class_to_loadable_list(Class cls)
     loadable_classes[loadable_classes_used].method = method;
     loadable_classes_used++;
 }
+/***********************************************************************
+* objc_class::getLoadMethod
+* fixme
+* Called only from add_class_to_loadable_list.
+* Locking: runtimeLock must be read- or write-locked by the caller.
+**********************************************************************/
+IMP objc_class::getLoadMethod()
+{
+    runtimeLock.assertLocked();
+
+    const method_list_t *mlist;
+
+    assert(isRealized());
+    assert(ISA()->isRealized());
+    assert(!isMetaClass());
+    assert(ISA()->isMetaClass());
+
+	// 从原始数据中搜索load方法
+    mlist = ISA()->data()->ro->baseMethods();
+    if (mlist) {
+        for (const auto& meth : *mlist) {
+            const char *name = sel_cname(meth.name);
+            if (0 == strcmp(name, "load")) {
+                return meth.imp;
+            }
+        }
+    }
+
+    return nil;
+}
 ```
 `add_category_to_loadable_list` 查找`category`，并把`load`方法添加到数组中
 ```cpp
@@ -679,9 +710,34 @@ void add_category_to_loadable_list(Category cat)
     loadable_categories[loadable_categories_used].method = method;
     loadable_categories_used++;
 }
+
+/***********************************************************************
+* _category_getLoadMethod
+* fixme
+* Called only from add_category_to_loadable_list
+* Locking: runtimeLock must be read- or write-locked by the caller
+**********************************************************************/
+IMP _category_getLoadMethod(Category cat)
+{
+    runtimeLock.assertLocked();
+
+    const method_list_t *mlist;
+
+    mlist = cat->classMethods;
+    if (mlist) {
+        for (const auto& meth : *mlist) {
+            const char *name = sel_cname(meth.name);
+            if (0 == strcmp(name, "load")) {
+                return meth.imp;
+            }
+        }
+    }
+
+    return nil;
+}
 ```
-**总结:** `+load`方法会在`runtime`加载类、分类时调用
-每个类、分类的`+load`，在程序运行过程中只调用一次
+**总结:** `+load`方法会在程序启动时调用，仅调用一次，
+每个类、分类的`+load`都会被调用
 
  调用顺序
 * 先调用类的`+load`
@@ -691,5 +747,303 @@ void add_category_to_loadable_list(Category cat)
 * 再调用分类的`+load`
 * 按照编译先后顺序调用（先编译，先调用）
 
+### Initialize 方法
+创建一个类`AYDog`，并重写它的`initialize`方法，打断点可以查看它的调用的栈流程
+```sh
+(lldb) bt
+* thread #1, queue = 'com.apple.main-thread', stop reason = breakpoint 1.1
+  * frame #0: 0x0000000100001b87 CategoryLoad`+[AYDog(self=AYDog, _cmd="initialize") initialize] at AYDog+Test1.m:17:5
+    frame #1: 0x00007fff6e8ce9b5 libobjc.A.dylib`CALLING_SOME_+initialize_METHOD + 17
+    frame #2: 0x00007fff6e8cf2ec libobjc.A.dylib`initializeNonMetaClass + 638
+    frame #3: 0x00007fff6e8cf9c1 libobjc.A.dylib`initializeAndMaybeRelock(objc_class*, objc_object*, mutex_tt<false>&, bool) + 214
+    frame #4: 0x00007fff6e8c141b libobjc.A.dylib`lookUpImpOrForward + 969
+    frame #5: 0x00007fff6e8c0bd9 libobjc.A.dylib`_objc_msgSend_uncached + 73
+    frame #6: 0x0000000100001d26 CategoryLoad`main(argc=1, argv=0x00007ffeefbff538) at main.m:34:9
+    frame #7: 0x00007fff6fc2f2e5 libdyld.dylib`start + 1
+    frame #8: 0x00007fff6fc2f2e5 libdyld.dylib`start + 1
+```
+可以看到调用顺序分别是`_objc_msgSend_uncached`, `lookUpImpOrForward`, `initializeAndMaybeRelock`, `initializeNonMetaClass` 
+查看`objc`源码进一步分析
+`_objc_msgSend_uncached` 是汇编实现的，在`objc-msg-arm64.s`中，跳过不看<br>
+在源码中搜索`lookUpImpOrForward`的调用，可以看到`lookUpImpOrNil`会调用它，
+再查找`lookUpImpOrNil`，可以看到`class_getInstanceMethod`会调用它.
+
+由此可以推测调用 `OC`方法时会调用`_objc_msgSend_uncached`, 它是`objc_msgSend`的派生方法，所以调用`objc_msgSend`会调用`class_getInstanceMethod`，`lookUpImpOrNil`, `lookUpImpOrForward`,`initializeAndMaybeRelock`, `initializeNonMetaClass`, 最后再调用`initialize`, 也就是说给`OC`发消息时，会调用`initialize`方法。
+
+******
+
+从`class_getInstanceMethod`开始，分析源码实现
+```cpp
+
+/***********************************************************************
+* class_getInstanceMethod.  Return the instance method for the
+* specified class and selector.
+**********************************************************************/
+Method class_getInstanceMethod(Class cls, SEL sel)
+{
+    if (!cls  ||  !sel) return nil;
+
+    // This deliberately avoids +initialize because it historically did so.
+
+    // This implementation is a bit weird because it's the only place that 
+    // wants a Method instead of an IMP.
+
+#warning fixme build and search caches
+        
+    // Search method lists, try method resolver, etc.
+    lookUpImpOrNil(cls, sel, nil, 
+                   NO/*initialize*/, NO/*cache*/, YES/*resolver*/);
+
+#warning fixme build and search caches
+
+    return _class_getMethod(cls, sel);
+}
+```
+继续查找方法`lookUpImpOrNil`
+```cpp
+/***********************************************************************
+* lookUpImpOrNil.
+* Like lookUpImpOrForward, but returns nil instead of _objc_msgForward_impcache
+**********************************************************************/
+IMP lookUpImpOrNil(Class cls, SEL sel, id inst, 
+                   bool initialize, bool cache, bool resolver)
+{
+    IMP imp = lookUpImpOrForward(cls, sel, inst, initialize, cache, resolver);
+    if (imp == _objc_msgForward_impcache) return nil;
+    else return imp;
+}
+```
+```cpp
+/***********************************************************************
+* lookUpImpOrForward.
+* The standard IMP lookup. 
+* initialize==NO tries to avoid +initialize (but sometimes fails)
+* cache==NO skips optimistic unlocked lookup (but uses cache elsewhere)
+* Most callers should use initialize==YES and cache==YES.
+* inst is an instance of cls or a subclass thereof, or nil if none is known. 
+*   If cls is an un-initialized metaclass then a non-nil inst is faster.
+* May return _objc_msgForward_impcache. IMPs destined for external use 
+*   must be converted to _objc_msgForward or _objc_msgForward_stret.
+*   If you don't want forwarding at all, use lookUpImpOrNil() instead.
+**********************************************************************/
+IMP lookUpImpOrForward(Class cls, SEL sel, id inst, 
+                       bool initialize, bool cache, bool resolver)
+{
+    IMP imp = nil;
+    bool triedResolver = NO;
+
+    runtimeLock.assertUnlocked();
+
+    // Optimistic cache lookup
+    if (cache) {
+        imp = cache_getImp(cls, sel);
+        if (imp) return imp;
+    }
+
+    // runtimeLock is held during isRealized and isInitialized checking
+    // to prevent races against concurrent realization.
+
+    // runtimeLock is held during method search to make
+    // method-lookup + cache-fill atomic with respect to method addition.
+    // Otherwise, a category could be added but ignored indefinitely because
+    // the cache was re-filled with the old value after the cache flush on
+    // behalf of the category.
+
+    runtimeLock.lock();
+    checkIsKnownClass(cls);
+
+    if (!cls->isRealized()) {
+        cls = realizeClassMaybeSwiftAndLeaveLocked(cls, runtimeLock);
+        // runtimeLock may have been dropped but is now locked again
+    }
+
+    if (initialize && !cls->isInitialized()) {
+        cls = initializeAndLeaveLocked(cls, inst, runtimeLock);
+        // runtimeLock may have been dropped but is now locked again
+
+        // If sel == initialize, class_initialize will send +initialize and 
+        // then the messenger will send +initialize again after this 
+        // procedure finishes. Of course, if this is not being called 
+        // from the messenger then it won't happen. 2778172
+    }
+	···
+
+    runtimeLock.unlock();
+
+    return imp;
+}
+```
+关键是这一段
+```cpp
+//如果需要初始化，并且没有初始化过，调用`initializeAndLeaveLocked`
+if (initialize && !cls->isInitialized()) {
+        cls = initializeAndLeaveLocked(cls, inst, runtimeLock);
+        // runtimeLock may have been dropped but is now locked again
+
+        // If sel == initialize, class_initialize will send +initialize and 
+        // then the messenger will send +initialize again after this 
+        // procedure finishes. Of course, if this is not being called 
+        // from the messenger then it won't happen. 2778172
+    }
+```
+查看是否初始化过，`getMeta()->data()->flags`，通过`flags`来判断
+```cpp
+ bool isInitialized() {
+        return getMeta()->data()->flags & RW_INITIALIZED;
+    }
+```
+```cpp
+// Locking: caller must hold runtimeLock; this may drop and re-acquire it
+static Class initializeAndLeaveLocked(Class cls, id obj, mutex_t& lock)
+{
+    return initializeAndMaybeRelock(cls, obj, lock, true);
+}
+
+/***********************************************************************
+* class_initialize.  Send the '+initialize' message on demand to any
+* uninitialized class. Force initialization of superclasses first.
+* inst is an instance of cls, or nil. Non-nil is better for performance.
+* Returns the class pointer. If the class was unrealized then 
+* it may be reallocated.
+* Locking: 
+*   runtimeLock must be held by the caller
+*   This function may drop the lock.
+*   On exit the lock is re-acquired or dropped as requested by leaveLocked.
+**********************************************************************/
+static Class initializeAndMaybeRelock(Class cls, id inst,
+                                      mutex_t& lock, bool leaveLocked)
+{
+    lock.assertLocked();
+    assert(cls->isRealized());
+
+    if (cls->isInitialized()) {
+        if (!leaveLocked) lock.unlock();
+        return cls;
+    }
+
+    // Find the non-meta class for cls, if it is not already one.
+    // The +initialize message is sent to the non-meta class object.
+    Class nonmeta = getMaybeUnrealizedNonMetaClass(cls, inst);
+
+    // Realize the non-meta class if necessary.
+    if (nonmeta->isRealized()) {
+        // nonmeta is cls, which was already realized
+        // OR nonmeta is distinct, but is already realized
+        // - nothing else to do
+        lock.unlock();
+    } else {
+        nonmeta = realizeClassMaybeSwiftAndUnlock(nonmeta, lock);
+        // runtimeLock is now unlocked
+        // fixme Swift can't relocate the class today,
+        // but someday it will:
+        cls = object_getClass(nonmeta);
+    }
+
+    // runtimeLock is now unlocked, for +initialize dispatch
+    assert(nonmeta->isRealized());
+    initializeNonMetaClass(nonmeta);
+
+    if (leaveLocked) runtimeLock.lock();
+    return cls;
+}
+```
+`class_initialize`发送`+initialize`消息给没有初始化的类，如果有父类，先初始化父类
+
+
+```cpp
+/***********************************************************************
+* class_initialize.  Send the '+initialize' message on demand to any
+* uninitialized class. Force initialization of superclasses first.
+**********************************************************************/
+void initializeNonMetaClass(Class cls)
+{
+    assert(!cls->isMetaClass());
+
+    Class supercls;
+    bool reallyInitialize = NO;
+
+	// 如果父类没有初始化，先初始化父类
+    // Make sure super is done initializing BEFORE beginning to initialize cls.
+    // See note about deadlock above.
+    supercls = cls->superclass;
+    if (supercls  &&  !supercls->isInitialized()) {
+        initializeNonMetaClass(supercls);
+    }
+    
+	// 开始初始化，启动线程锁
+    // Try to atomically set CLS_INITIALIZING.
+    {
+        monitor_locker_t lock(classInitLock);
+        if (!cls->isInitialized() && !cls->isInitializing()) {
+            cls->setInitializing();
+            reallyInitialize = YES;
+        }
+    }
+    
+	// 开始初始化
+    if (reallyInitialize) {
+        // We successfully set the CLS_INITIALIZING bit. Initialize the class.
+        
+        // Record that we're initializing this class so we can message it.
+        _setThisThreadIsInitializingClass(cls);
+
+		... lock 和 打印操作
+       
+        {
+			// 调用初始化方法
+            callInitialize(cls);
+
+            if (PrintInitializing) {
+                _objc_inform("INITIALIZE: thread %p: finished +[%s initialize]",
+                             pthread_self(), cls->nameForLogging());
+            }
+        }
+		...
+        {
+            // Done initializing.
+            lockAndFinishInitializing(cls, supercls);
+        }
+        return;
+    }
+    
+    else if (cls->isInitializing()) {
+        ... lock 处理
+    }
+    
+    else if (cls->isInitialized()) {
+        // Set CLS_INITIALIZING failed because someone else already 
+        //   initialized the class. Continue normally.
+        // NOTE this check must come AFTER the ISINITIALIZING case.
+        // Otherwise: Another thread is initializing this class. ISINITIALIZED 
+        //   is false. Skip this clause. Then the other thread finishes 
+        //   initialization and sets INITIALIZING=no and INITIALIZED=yes. 
+        //   Skip the ISINITIALIZING clause. Die horribly.
+        return;
+    }
+    
+    else {
+        // We shouldn't be here. 
+        _objc_fatal("thread-safe class init in objc runtime is buggy!");
+    }
+}
+```
+上面的方法中，如果有父类，先初始化父类，没有父类再初始化当前类，调用`callInitialize`来初始化
+```cpp
+void callInitialize(Class cls)
+{
+    ((void(*)(Class, SEL))objc_msgSend)(cls, SEL_initialize);
+    asm("");
+}
+```
+使用`objc_msgSend`调用`+initialize`方法
+
+**总结:**`+initialize`方法会在类第一次接收到消息时调用<br>
+调用顺序:
+先调用父类的`+initialize`，再调用子类的`+initialize`<br>
+(先初始化父类，再初始化子类，每个类只会初始化1次)
+
+`+initialize`和`+load`的很大区别是，`+initialize`是通过`objc_msgSend`进行调用的，所以有以下特点
+如果子类没有实现`+initialize`，会调用父类的`+initialize`（所以父类的`+initialize`可能会被调用多次）
+如果分类实现了`+initialize`，就覆盖类本身的`+initialize`调用
 
 reference: [apple objc4 源码](https://opensource.apple.com/tarballs/objc4/)
