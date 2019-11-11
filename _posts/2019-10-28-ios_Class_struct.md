@@ -112,7 +112,7 @@ struct class_data_bits_t {
     结构体方法
 };
 
-// 存有方法、属性变量、协议等列表
+// 存有方法、属性变量、协议等列表，后期可能会和caterory_t中的方法，协议列表合并
 struct class_rw_t {
     // Be warned that Symbolication knows the layout of this structure.
     uint32_t flags;
@@ -136,7 +136,7 @@ struct class_rw_t {
     结构体方法
 };
 
-// 存有方法、成员变量、协议等列表
+// 存有类原来的方法、成员变量、协议等列表，后期和category合并时不动
 struct class_ro_t {
     uint32_t flags;
     uint32_t instanceStart;
