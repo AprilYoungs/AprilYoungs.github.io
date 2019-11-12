@@ -17,7 +17,7 @@ void objc_removeAssociatedObjects(id  _Nonnull object);
 ```
 
 #### 使用方法
-如下，可以`category`添加属性, 然后在`set`和`get`方法中调用`runtime`的api来关联属性
+如下，可以给`category`添加属性, 然后在`set`和`get`方法中调用`runtime`的api来关联属性
 ```cpp
 @interface AYPerson (test)
 @property(nonatomic, assign) int age;
@@ -63,20 +63,39 @@ objc_getAssociatedObject(obj, @selector(getter))
 ```
 
 #### objc_AssociationPolicy
-objc_AssociationPolicy|对应的修饰符
-----|----
-OBJC_ASSOCIATION_ASSIGN|`assign`
-OBJC_ASSOCIATION_RETAIN_NONATOMIC|`strong, nonatomic`
-OBJC_ASSOCIATION_COPY_NONATOMIC|`copy, nonatomic`
-OBJC_ASSOCIATION_RETAIN|`strong, atomic`
-OBJC_ASSOCIATION_COPY|`copy, atomic`
+<table>
+    <tr>
+        <th>objc_AssociationPolicy</th>
+        <th>对应的修饰符</th>
+    </tr>
+    <tr>
+        <td>OBJC_ASSOCIATION_ASSIGN</td>
+        <td>assign</td>
+     </tr>
+     <tr>
+        <td>OBJC_ASSOCIATION_RETAIN_NONATOMIC</td>
+        <td>strong, nonatomic</td>
+     </tr>
+     <tr>
+        <td>OBJC_ASSOCIATION_COPY_NONATOMIC</td>
+        <td>copy, nonatomic</td>
+     </tr>
+     <tr>
+        <td>OBJC_ASSOCIATION_RETAIN</td>
+        <td>strong, atomic</td>
+     </tr>
+     <tr>
+        <td>OBJC_ASSOCIATION_COPY</td>
+        <td>copy, atomic</td>
+    </tr>
+</table>
 
 #### 关联对象的原理
-实现关联对象技术的核心对象有:
-`AssociationsManager`
-`AssociationsHashMap`
-`ObjectAssociationMap`
-`ObjcAssociation`
+实现关联对象的核心对象有:<br>
+`AssociationsManager`<br>
+`AssociationsHashMap`<br>
+`ObjectAssociationMap`<br>
+`ObjcAssociation`<br>
 ```cpp
 class AssociationsManager {
     // associative references: object pointer -> PtrPtrHashMap.
@@ -90,7 +109,7 @@ id _value;
 }
 ```
 ![](/resource/association/association.png)
-##### objc 代码分析
+#### objc 代码分析
 `objc_setAssociatedObject` 添加关联对象
 ```cpp
 void objc_setAssociatedObject(id object, const void *key, id value, objc_AssociationPolicy policy) {
