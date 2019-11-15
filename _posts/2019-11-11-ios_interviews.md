@@ -74,3 +74,15 @@ load方法可以继承，但是一般情况下不会主动去调用load方法，
 * Category能否添加成员变量？如果可以，如何给Category添加成员变量？
 >不能直接给Category添加成员变量，但是可以通过runtime给分类绑定变量，实现Category有成员变量的效果
 
+* block的原理是怎样的？本质是什么？
+> 封装了函数调用以及调用环境的OC对象
+
+* __block的作用是什么？有什么使用注意点？
+> 让block可以修改捕获的对象。 需要注意循环引用的问题, 可以`__block __weak`一起使用。
+
+* block的属性修饰词为什么是copy？使用block有哪些使用注意？
+> block一旦没有进行copy操作，就不会在堆上，不能持有捕获的对象, 当需要使用捕获的对象时，可能捕获的对象已经释放了。
+使用注意：循环引用问题
+
+* block在修改NSMutableArray，需不需要添加__block？
+> 不需要，对 NSMutableArray 数组的增删改，都不会修复NSMutableArray变量的地址，只有想给NSMutableArray变量重新赋值才需要使用 __block
