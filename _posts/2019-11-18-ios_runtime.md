@@ -77,3 +77,157 @@ C语言中节省存储空间的一种策略，定义结构体中变量占用空�
 <div class="center">
 <image src="/resource/runtime/isa3.png" style="width:500px"/>
 </div>
+
+### Class 的结构
+<div class="center">
+<image src="/resource/runtime/class1.png" style="width:900px"/>
+</div>
+#### class_rw_t
+
+`class_rw_t` 里面的`methods、properties、protocols`是二维数组，是可读可写的，包含了类的初始内容、分类的内容
+<div class="center">
+<image src="/resource/runtime/class2.png" style="width:800px"/>
+</div>
+
+#### class_ro_t
+
+`class_ro_t`里面的`baseMethodList、baseProtocols、ivars、baseProperties`是一维数组，是只读的，包含了类的初始内容
+<div class="center">
+<image src="/resource/runtime/class3.png" style="width:600px"/>
+</div>
+
+#### method_t
+
+```cpp
+struct method_t {
+    SEL name;  // 函数名
+    const char *types;  // 编码（返回值类型，参数类型）
+    IMP imp;    // 指向函数的指针（函数地址）
+};
+```
+* `IMP` 代表函数的具体实现
+`typedef id _Nullable (*IMP)(id _Nonnull, SEL _Nonnull, ...); `
+
+* `SEL` 代表方法\函数名，一般叫做选择器，底层结构跟`char *`类似
+> 可以通过`@selector()`和`sel_registerName()`获得
+可以通过`sel_getName()`和 `NSStringFromSelector()`转成字符串
+不同类中相同名字的方法，所对应的方法选择器是相同的
+```cpp
+/// An opaque type that represents a method selector.
+typedef struct objc_selector *SEL;
+```
+types包含了函数返回值、参数编码的字符串
+<table>
+    <tr>
+        <th>返回值</th>
+        <th>参数1</th>
+        <th>参数2</th>
+        <th> ... </th>
+        <th>参数n</th>
+    </tr>
+</table>
+iOS中提供了一个叫做@encode的指令，可以将具体的类型表示成字符串编码
+<div class="center">
+<image src="/resource/runtime/type1.png" style="width:400px"/>
+</div>
+
+<div class="center">
+<image src="/resource/runtime/type2.png" style="width:600px"/>
+</div>
+
+### 方法缓存
+
+`Class`内部结构中有个方法缓存`（cache_t）`，用<span style="color:#800">散列表（哈希表）</span>来缓存曾经调用过的方法，可以提高方法的查找速度
+<div class="center">
+<image src="/resource/runtime/cache.png" style="width:800px"/>
+</div>
+
+类调用函数的时候会优先去 `cache` 中查找没有对应方法，如果有就直接调用，没有就在类方法里边查找，找到了之后调用并添加缓存，后面再详细分析方法调用顺序，现在先研究方法缓存机制。
+查看[objc4](https://opensource.apple.com/tarballs/objc4/)源码中的`objc-cache.mm`文件, 找到
+`bucket_t * cache_t::find(SEL s, id receiver)`方法
+```cpp
+#if __arm__  ||  __x86_64__  ||  __i386__
+// objc_msgSend has few registers available.
+// Cache scan increments and wraps at special end-marking bucket.
+
+static inline mask_t cache_next(mask_t i, mask_t mask) {
+    return (i+1) & mask;
+}
+#elif __arm64__
+// objc_msgSend has lots of registers available.
+// Cache scan decrements. No end marker needed.
+static inline mask_t cache_next(mask_t i, mask_t mask) {
+    return i ? i-1 : mask;
+}
+#endif
+
+// Class points to cache. SEL is key. Cache buckets store SEL+IMP.
+// Caches are never built in the dyld shared cache.
+
+static inline mask_t cache_hash(SEL sel, mask_t mask) 
+{
+    return (mask_t)(uintptr_t)sel & mask;
+}
+
+bucket_t * cache_t::find(SEL s, id receiver)
+{
+    assert(s != 0);
+
+    bucket_t *b = buckets();
+    mask_t m = mask();
+    mask_t begin = cache_hash(s, m);
+    mask_t i = begin;
+    do {
+        if (b[i].sel() == 0  ||  b[i].sel() == s) {
+            return &b[i];
+        }
+    } while ((i = cache_next(i, m)) != begin);
+
+    // hack
+    Class cls = (Class)((uintptr_t)this - offsetof(objc_class, cache));
+    cache_t::bad_cache(receiver, (SEL)s, cls);
+}
+```
+
+`cache_t` 中用 `bucket_t *`数组来存储缓存的方法对，每次进来一个新的方法使用`cache_hash`来获取它的`哈希值`, 然后把这个值当成下标，把对应的方法`method_t`存放到`bucket_t *`中。如果上面获取的`哈希值`已经出现过，会调用对应的`cache_next`方法生成一个新的下标，当`cache`满了之后，会调用扩容的方法`void cache_t::expand()`
+
+```cpp
+void cache_t::expand()
+{
+    cacheUpdateLock.assertLocked();
+    
+    uint32_t oldCapacity = capacity();
+    uint32_t newCapacity = oldCapacity ? oldCapacity*2 : INIT_CACHE_SIZE;
+
+    if ((uint32_t)(mask_t)newCapacity != newCapacity) {
+        // mask overflow - can't grow further
+        // fixme this wastes one bit of mask
+        newCapacity = oldCapacity;
+    }
+
+    reallocate(oldCapacity, newCapacity);
+}
+void cache_t::reallocate(mask_t oldCapacity, mask_t newCapacity)
+{
+    bool freeOld = canBeFreed();
+
+    bucket_t *oldBuckets = buckets();
+    bucket_t *newBuckets = allocateBuckets(newCapacity);
+
+    // Cache's old contents are not propagated. 
+    // This is thought to save cache memory at the cost of extra cache fills.
+    // fixme re-measure this
+
+    assert(newCapacity > 0);
+    assert((uintptr_t)(mask_t)(newCapacity-1) == newCapacity-1);
+
+    setBucketsAndMask(newBuckets, newCapacity - 1);
+    
+    if (freeOld) {
+        cache_collect_free(oldBuckets, oldCapacity);
+        cache_collect(false);
+    }
+}
+```
+
+reference: [apple objc4 源码](https://opensource.apple.com/tarballs/objc4/)
