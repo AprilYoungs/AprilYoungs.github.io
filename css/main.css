@@ -54,7 +54,12 @@ footer {
 img {
   width: auto;
   max-width: 100%;
+  margin: 0 auto;
   /* width: auto; */
+}
+
+div .center{
+    text-align: center;
 }
 
 ul.posts {
