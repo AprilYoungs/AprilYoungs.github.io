@@ -393,10 +393,200 @@ OC中方法调用，其实都是转换成`objc_msgSend`函数的调用
 @implementation Animal
 /**
  告诉编译器不用自动生成getter 和 setter 的实现，
- 等到运行时再动态添加方法实现
+ 可以等到运行时再动态添加方法实现
  */
 @dynamic name;
 @end
 ```
+需要手动添加方法实现，不然会出现`unrecognized selector sent to instance`的错误
+
+#### 消息转发
+<div class="center">
+<image src="/resource/runtime/msg_forward.png" style="width: 600px;"/>
+</div>
+
+生成`NSMethodSignature`的方法
+```cpp
+NSMethodSignature *ms1 = [NSMethodSignature signatureWithObjCTypes:"v@:"];
+NSMethodSignature *ms2 = [[[AYPerson alloc] init] methodSignatureForSelector:@selector(yourMethod)];
+```
+
+完整的消息转发流程
+```objectivec
+- (void)yourMethod
+{
+    NSLog(@"%s", __func__);
+}
+
++ (void)yourMethod
+{
+    NSLog(@"%s", __func__);
+}
+
+//MARK: 1. 消息方法
+// 原本实现的方法调用
+- (void)test
+{
+    NSLog(@"%s", __func__);
+}
+
++ (void)test
+{
+    NSLog(@"%s", __func__);
+}
+
+//MARK: 2. 消息动态解析
+// 可以动态添加方法实现
++ (BOOL)resolveInstanceMethod:(SEL)sel
+{
+    // test 没有实现的方法
+    // yourMethod 另外实现的方法
+    if (sel == @selector(test))
+    {
+        Method m = class_getInstanceMethod(self, @selector(yourMethod));
+        class_addMethod(self,
+                        sel,
+                        method_getImplementation(m),
+                        method_getTypeEncoding(m));
+    }
+
+    return [super resolveInstanceMethod: sel];
+}
+
++ (BOOL)resolveClassMethod:(SEL)sel
+{
+    // test 没有实现的方法
+    // yourMethod 另外实现的方法
+    if (sel == @selector(test))
+    {
+        Method m = class_getClassMethod(self, @selector(yourMethod));
+
+        class_addMethod(object_getClass(self),
+                        sel,
+                        method_getImplementation(m),
+                        method_getTypeEncoding(m));
+    }
+
+    return [super resolveClassMethod:sel];
+}
+
+//MARK: 3. 消息转发
+//MARK: 3.1 转发到有实现对应方法的对象 forwardingTarget
+// 实例方法的转发
+- (id)forwardingTargetForSelector:(SEL)aSelector
+{
+    if (aSelector == @selector(test))
+    {
+        return [[AYMan alloc] init];
+    }
+
+    return [super forwardingTargetForSelector:aSelector];
+}
+
+// 类方法的转发
++ (id)forwardingTargetForSelector:(SEL)aSelector
+{
+    if (aSelector == @selector(test))
+    {
+        return [AYMan class];
+    }
+
+    return [super forwardingTargetForSelector:aSelector];
+}
+
+
+//MARK: 3.2  转发调用 forwardInvocation
+//MARK: 3.2.1 实例方法处理
+- (NSMethodSignature *)methodSignatureForSelector:(SEL)aSelector
+{
+    if (aSelector == @selector(test))
+    {
+        return [[[AYPerson alloc] init] methodSignatureForSelector:@selector(yourMethod)];
+    }
+    return [super methodSignatureForSelector:aSelector];
+}
+
+/**
+ NSInvocation 包含： target 调用方法的对象
+                    selector 对用的方法
+                    arguments 调用的参数
+ 有调用一个OC方法必要的所有条件
+ 
+ 在 方法中可以进行任何想要进行的操作，打印，调用方法，或什么都不做，
+ */
+- (void)forwardInvocation:(NSInvocation *)anInvocation
+{
+    
+    if (anInvocation.selector == @selector(test))
+    {
+        NSLog(@"%@-%@", anInvocation.target, NSStringFromSelector(anInvocation.selector));
+        id man = [[AYMan alloc] init];
+        anInvocation.target = man;
+        [anInvocation invoke];
+    }
+}
+
+//MARK: 3.2.2 类方法处理
++ (NSMethodSignature *)methodSignatureForSelector:(SEL)aSelector
+{
+    if (aSelector == @selector(test))
+    {
+        return [[AYPerson class] methodSignatureForSelector:@selector(yourMethod)];
+    }
+    return [super methodSignatureForSelector:aSelector];
+}
+
++ (void)forwardInvocation:(NSInvocation *)anInvocation
+{
+    if (anInvocation.selector == @selector(test))
+    {
+        NSLog(@"%@-%@", anInvocation.target, NSStringFromSelector(anInvocation.selector));
+//        id man = [AYMan class];
+//        anInvocation.target = man;
+//        [anInvocation invoke];
+    }
+}
+```
+
+一个简单的应用，在 NSDictionary 添加了方法拦截，处理没有实现的方法
+网络请求的数据，有时候会出现 该返回 数组 的时候返回 字典 的情况
+添加相应的方法拦截，可以避免崩溃
+```objectivec
+id dic = @{@"ky": @"April"};
+id s =  [dic objectAtIndex:2];
+NSLog(@"result->%@", s);
+
+/**
+  __NSSingleEntryDictionaryI-objectAtIndex:
+ AYWarning: Dictionary - {
+     ky = April;
+ } ask for index->2
+ result->(null)
+ */
+//-----------------------------------
+@implementation NSDictionary (AYMsg)
+// 拦截 调用下标的方法，打印异常
+- (NSMethodSignature *)methodSignatureForSelector:(SEL)aSelector
+{
+    NSLog(@"%@-%@", NSStringFromClass([self class]), NSStringFromSelector(aSelector));
+    if (aSelector == @selector(objectAtIndex:))
+    {
+        return [@[] methodSignatureForSelector:@selector(objectAtIndex:)];
+    }
+    return [super methodSignatureForSelector:aSelector];
+}
+- (void)forwardInvocation:(NSInvocation *)anInvocation
+{
+    if (anInvocation.selector == @selector(objectAtIndex:))
+    {
+        NSInteger index;
+        [anInvocation getArgument:&index atIndex:2];
+        NSLog(@"AYWarning: Dictionary - %@ ask for index->%ld", anInvocation.target, index);
+    }
+}
+@end
+```
+
+[objc_msgSend demo](https://github.com/AprilYoungs/MJ_course/tree/master/ReviewPrepare/08-Runtime课件/MYRuntime)
 
 reference: [apple objc4 源码](https://opensource.apple.com/tarballs/objc4/)
