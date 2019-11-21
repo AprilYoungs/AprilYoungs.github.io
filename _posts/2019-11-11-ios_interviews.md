@@ -74,6 +74,7 @@ load方法可以继承，但是一般情况下不会主动去调用load方法，
 * Category能否添加成员变量？如果可以，如何给Category添加成员变量？
 >不能直接给Category添加成员变量，但是可以通过runtime给分类绑定变量，实现Category有成员变量的效果
 
+### Block
 * block的原理是怎样的？本质是什么？
 > 封装了函数调用以及调用环境的OC对象
 
@@ -86,3 +87,25 @@ load方法可以继承，但是一般情况下不会主动去调用load方法，
 
 * block在修改NSMutableArray，需不需要添加__block？
 > 不需要，对 NSMutableArray 数组的增删改，都不会修复NSMutableArray变量的地址，只有想给NSMutableArray变量重新赋值才需要使用 __block
+
+### runtime
+* 讲一下 OC 的消息机制
+> OC中的方法调用其实都是转成了objc_msgSend函数的调用，给receiver（方法调用者）发送了一条消息（selector方法名）
+objc_msgSend底层有3大阶段
+消息发送（当前类、父类中查找）、动态方法解析、消息转发
+
+* 消息转发机制流程
+> [看图](/blog/2019/11/18/ios_runtime)
+
+* 什么是Runtime？平时项目中有用过么？
+> OC是一门动态性比较强的编程语言，允许很多操作推迟到程序运行时再进行
+OC的动态性就是由Runtime来支撑和实现的，Runtime是一套C语言的API，封装了很多动态性相关的函数
+平时编写的OC代码，底层都是转换成了Runtime API进行调用
+
+> 具体应用
+利用关联对象（AssociatedObject）给分类添加属性
+遍历类的所有成员变量（修改textfield的占位文字颜色、字典转模型、自动归档解档）
+交换方法实现（交换系统的方法）
+利用消息转发机制解决方法找不到的异常问题
+......
+
