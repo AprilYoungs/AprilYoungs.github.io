@@ -304,4 +304,99 @@ void cache_t::reallocate(mask_t oldCapacity, mask_t newCapacity)
         
 ```
 
+### objc_msgSend 消息机制
+OC中方法调用，其实都是转换成`objc_msgSend`函数的调用
+
+`objc_msgSend`的执行流程可以分为3个阶段
+<div class="center">
+<image src="/resource/runtime/msg_send.png" style="width: 150px;"/>
+</div>
+
+关于`objc_msgSend`的详细执行流程，可以查看[objc4 源码](https://opensource.apple.com/tarballs/objc4/),可以按照这个顺序来读源码
+> * objc-msg-arm64.s
+<br>ENTRY _objc_msgSend
+<br>b.le	LNilOrTagged
+<br>CacheLookup NORMAL
+<br>.macro CacheLookup
+<br>.macro CheckMiss
+<br>STATIC_ENTRY __objc_msgSend_uncached
+<br>.macro MethodTableLookup
+<br>__class_lookupMethodAndLoadCache3
+
+> * objc-runtime-new.mm
+<br>_class_lookupMethodAndLoadCache3
+<br>lookUpImpOrForward
+<br>getMethodNoSuper_nolock、search_method_list、<br>log_and_fill_cache
+<br>cache_getImp、log_and_fill_cache、<br>getMethodNoSuper_nolock、log_and_fill_cache
+<br>resoveMethod
+<br>_objc_msgForward_impcache
+
+> * objc-msg-arm64.s
+<br>STATIC_ENTRY __objc_msgForward_impcache
+<br>ENTRY __objc_msgForward
+
+> * Core Foundation
+<br>__forwarding__（不开源）
+
+#### 1. 消息发送
+<div class="center">
+<image src="/resource/runtime/msg_send1.png" style="width: 900px;"/>
+</div>
+
+#### 2. 动态方法解析
+<div class="center">
+<image src="/resource/runtime/resolve_method.png" style="width: 600px;"/>
+</div>
+
+**动态添加方法**: 可以使用`runtime`的方法在`-resolveInstanceMethod`, `+resolveClassMethod`中动态添加找不到的方法
+
+```cpp
++ (BOOL)resolveInstanceMethod:(SEL)sel
+{
+    // yourMethod 没有实现的方法
+    // other 另外实现的方法
+    if (sel == @selector(yourMethod))
+    {
+        Method m = class_getInstanceMethod(self, @selector(other));
+        class_addMethod(self,
+                        sel,
+                        method_getImplementation(m),
+                        method_getTypeEncoding(m));
+    }
+    
+    return [super resolveInstanceMethod: sel];
+}
+
++ (BOOL)resolveClassMethod:(SEL)sel
+{
+    // yourMethod 没有实现的方法
+    // other 另外实现的方法
+    if (sel == @selector(yourMethod))
+    {
+        Method m = class_getClassMethod(self, @selector(other));
+          
+        class_addMethod(object_getClass(self),
+                        sel,
+                        method_getImplementation(m),
+                        method_getTypeEncoding(m));
+    }
+    
+    return [super resolveClassMethod:sel];
+}
+```
+关于 `@dynamic` 的作用
+```cpp
+@interface Animal : NSObject
+@property(nonatomic, strong) NSString *name;
+@end
+
+@implementation Animal
+/**
+ 告诉编译器不用自动生成getter 和 setter 的实现，
+ 等到运行时再动态添加方法实现
+ */
+@dynamic name;
+@end
+```
+
 reference: [apple objc4 源码](https://opensource.apple.com/tarballs/objc4/)
