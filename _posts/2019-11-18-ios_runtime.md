@@ -589,4 +589,129 @@ NSLog(@"result->%@", s);
 
 [objc_msgSend demo](https://github.com/AprilYoungs/MJ_course/tree/master/ReviewPrepare/08-Runtime课件/MYRuntime)
 
+### Super 
+
+在类的方法实现中，可以使用`super`关键词来调用父类的方法实现，比如下面这样
+```cpp
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view.
+}
+```
+但是你有认真思考过使用 `super` 调用方法的具体过程吗？
+看看下面这段代码
+
+```objectivec
+ // AYStudent : AYPerson : NSObject
+- (instancetype)init
+{
+    self = [super init];
+    if (self) {
+        NSLog(@"[self class]-%@", [self class]);
+        NSLog(@"[self superclass]-%@", [self superclass]);
+        NSLog(@"-------------------------------------");
+        
+        NSLog(@"[super class]-%@", [super class]);
+        NSLog(@"[super superclass]-%@", [super superclass]);
+        
+        /**
+         [self class]-AYStudent
+         [self superclass]-AYPerson
+         -------------------------------------
+         [super class]-AYStudent
+         [super superclass]-AYPerson
+         */
+    }
+    return self;
+}
+```
+`[super class]-AYStudent` 并不是 `AYPerson`
+`[super superclass]-AYPerson` 并不是 `NSObject`
+
+下面来研究一下为上面是上面这个结果
+写一个简单的方法
+```objectivec
+- (void)test
+{
+    [super test];
+}
+```
+使用如下指令
+
+`xcrun -sdk iphoneos clang -arch arm64 -rewrite-objc -fobjc-arc -fobjc-runtime=ios-8.0.0 AYStudent.m`
+
+把上面的代码编译出cpp代码, 下面这段是`test`方法的cpp版本
+```cpp
+static void _I_AYStudent_test(AYStudent * self, SEL _cmd) {
+    ((void (*)(__rw_objc_super *, SEL))(void *)objc_msgSendSuper)((__rw_objc_super){(id)self, (id)class_getSuperclass(objc_getClass("AYStudent"))}, sel_registerName("test"));
+}
+```
+去掉转化之后的简化代码
+```cpp
+static void _I_AYStudent_test(AYStudent * self, SEL _cmd) {
+    objc_msgSendSuper((__rw_objc_super){(id)self, (id)class_getSuperclass(objc_getClass("AYStudent"))}, sel_registerName("test"));
+}
+```
+`super`调用方法其实是调用`objc_msgSendSuper`方法，下面查看[objc4 源码](https://opensource.apple.com/tarballs/objc4/), 找到`objc_msgSendSuper`的定义
+```cpp
+/** 
+ * Sends a message with a simple return value to the superclass of an instance of a class.
+ * 
+ * @param super A pointer to an \c objc_super data structure. Pass values identifying the
+ *  context the message was sent to, including the instance of the class that is to receive the
+ *  message and the superclass at which to start searching for the method implementation.
+ * @param op A pointer of type SEL. Pass the selector of the method that will handle the message.
+ * @param ...
+ *   A variable argument list containing the arguments to the method.
+ * 
+ * @return The return value of the method identified by \e op.
+ * 
+ * @see objc_msgSend
+ */
+OBJC_EXPORT id _Nullable
+objc_msgSendSuper(struct objc_super * _Nonnull super, SEL _Nonnull op, ...)
+    OBJC_AVAILABLE(10.0, 2.0, 9.0, 1.0, 2.0);
+```
+第一个参数`super`一个`struct objc_super`结构体，里边包含方法接收者`id receiver`, 和`Class super_class`
+
+```cpp
+/// Specifies the superclass of an instance. 
+struct objc_super {
+    /// Specifies an instance of a class.
+    __unsafe_unretained _Nonnull id receiver;
+
+    /// Specifies the particular superclass of the instance to message. 
+#if !defined(__cplusplus)  &&  !__OBJC2__
+    /* For compatibility with old objc-runtime.h header */
+    __unsafe_unretained _Nonnull Class class;
+#else
+    __unsafe_unretained _Nonnull Class super_class;
+#endif
+    /* super_class is the first class to search */
+};
+#endif
+```
+```
+ * @param super A pointer to an \c objc_super data structure. Pass values identifying the
+ *  context the message was sent to, including the instance of the class that is to receive the
+ *  message and the superclass at which to start searching for the method implementation.
+```
+`objc_super`中包含类的实例，用来接收方法，还有`superclass`用来做方法搜索的起点
+<div class="center">
+<image src="/resource/runtime/super.png" style="width:550px"/>
+</div>
+
+不论是 `AYStudent` 还是 `AYPerson`都没有实现`class`方法，所有 `[self class]`,`[super class]`都是调用了`NSObject`的`class`方法。而`NSObject`对应方法实现的伪代码如下
+```cpp
+- (Class)class
+{
+    return object_getClass(self);
+}
+- (Class)superclass
+{
+    return class_getSuperclass(object_getClass(self));
+}
+```
+
+
 reference: [apple objc4 源码](https://opensource.apple.com/tarballs/objc4/)
