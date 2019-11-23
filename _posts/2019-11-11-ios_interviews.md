@@ -100,12 +100,187 @@ objc_msgSend底层有3大阶段
 * 什么是Runtime？平时项目中有用过么？
 > OC是一门动态性比较强的编程语言，允许很多操作推迟到程序运行时再进行
 OC的动态性就是由Runtime来支撑和实现的，Runtime是一套C语言的API，封装了很多动态性相关的函数
-平时编写的OC代码，底层都是转换成了Runtime API进行调用
-
-> 具体应用
+平时编写的OC代码，底层都是转换成了Runtime API进行调用<br><br>
+> 具体应用<br>
 利用关联对象（AssociatedObject）给分类添加属性
 遍历类的所有成员变量（修改textfield的占位文字颜色、字典转模型、自动归档解档）
 交换方法实现（交换系统的方法）
 利用消息转发机制解决方法找不到的异常问题
 ......
 
+* 写出如下程序的打印结果 `isMemberOfClass`,`isKindOfClass`
+
+```objectivec
+@interface AYPerson : NSObject
+@end
+@implementation AYPerson
+@end
+
+int main(int argc, const char * argv[]) {
+    @autoreleasepool {
+        BOOL res1 = [NSObject isKindOfClass:[NSObject class]];
+        BOOL res3 = [NSObject isMemberOfClass:[NSObject class]];
+        BOOL res2 = [AYPerson isKindOfClass:[AYPerson class]];
+        BOOL res4 = [AYPerson isMemberOfClass:[AYPerson class]];
+        
+        NSLog(@"%d %d %d %d", res1, res2, res3, res4);
+        
+        NSObject *obj = [[NSObject alloc] init];
+        AYPerson *per = [[AYPerson alloc] init];
+        BOOL res5 = [obj isKindOfClass:[NSObject class]];
+        BOOL res6 = [obj isMemberOfClass:[NSObject class]];
+        BOOL res7 = [per isKindOfClass:[AYPerson class]];
+        BOOL res8 = [per isMemberOfClass:[AYPerson class]];
+        
+        NSLog(@"%d %d %d %d", res5, res6, res7, res8);
+    }
+    return 0;
+}
+```
+> 1 0 0 0 <br> 1 1 1 1<br>
+上面这道题考察的是对 `isMemberOfClass`,`isKindOfClass` 运行机制的理解, 前者判断是否是对应类，后者判断是否是对应类的子类，这里需要注意的是使用实例对象调用的结果和使用类对象调用的结果有不同， 使用类对象调用的结果是判断meta-class，而实例对象判断的是class.
+
+查看[apple objc4](https://opensource.apple.com/tarballs/objc4/)可以找到对应的方法实现
+```objectivec
++ (BOOL)isMemberOfClass:(Class)cls {
+    // 获取meta-class
+    return object_getClass((id)self) == cls;
+}
+
+- (BOOL)isMemberOfClass:(Class)cls {
+    // 获取class
+    return [self class] == cls;
+}
+
++ (BOOL)isKindOfClass:(Class)cls {
+    // 获取meta-class，并依次判断是否有一个superclass是相同的
+    for (Class tcls = object_getClass((id)self); tcls; tcls = tcls->superclass) {
+        if (tcls == cls) return YES;
+    }
+    return NO;
+}
+
+- (BOOL)isKindOfClass:(Class)cls {
+    // 获取class，并依次判断是否有一个superclass是相同的
+    for (Class tcls = [self class]; tcls; tcls = tcls->superclass) {
+        if (tcls == cls) return YES;
+    }
+    return NO;
+}
+```
+上面的题有一点需要注意
+`BOOL res1 = [NSObject isKindOfClass:[NSObject class]]; res1 == true`<br>因为`NSObject`比较特殊，`NSOject`的`metaclass`的`superClass`指向`NSOject`, 因为这个特殊性，所以`NSObject`的类方法找不到时会去调用`NSObject`同名的实例方法
+
+* 以下代码能不能执行，如果可以，打印结果是什么？
+
+```objectivec
+@interface AYPerson : NSObject
+@property(nonatomic, strong) NSString *name;
+- (void)print;
+@end
+@implementation AYPerson
+- (void)print
+{
+    NSLog(@"my name is %@", self.name);
+}
+@end
+
+@interface ViewController ()
+@end
+
+@implementation ViewController
+- (void)viewDidLoad {
+    [super viewDidLoad];    
+    id cls = [AYPerson class];
+    void *obj = &cls;
+    
+    [(__bridge id)obj print];
+}
+@end
+```
+
+> my name is <ViewController: 0x7fbcc47036c0> 
+
+> 这段代码可以执行成功，分两个点来解释，1. 为什么可以正常调用实例方法？ <br>2. 为什么打印出来是  `<ViewController: 0x7fbcc47036c0>`?
+
+> 1. 为什么可以正常调用实例方法？
+<div class="center">
+<image src="/resource/interview/getInstance.png" style="width: 500px;"/>
+</div>
+
+正常的创建一个
+`AYPerson *person = [[AYPerson alloc] init];` 这个`person`是一个由`isa`指针和`_name`组成的结构体，然后`person`指针指向`isa`，`isa`指向`[AYPerson class]`.
+而上面的`obj`指向`cls`, `cls`指向`[AYPerson class]`, 所以`obj`和`person`都存有指向`[AYPerson class]`的指针, 因此obj可以正常调用`print`方法。
+
+> 2. 为什么打印出来是 `<ViewController>`?
+`person`的`self.name`在运行时会去找内存中跟`isa`挨着的下一块内存地址上面的值。而跟`cls`挨着的是前面定义的变量。
+
+这里讲一下大端下端存储的问题，运行如下代码
+```cpp
+int a = 2;
+int b = 4;
+int c = 8;
+NSLog(@"\n%p\n%p\n%p", &a, &b, &c);
+/*
+0x7ffee3d4313c
+0x7ffee3d43138
+0x7ffee3d43134
+*/
+
+struct {
+    int a;
+    int b;
+}test;
+
+test.a = 10;
+test.b = 20;
+NSLog(@"\nstruct a: %p\nstruct b:
+%p", &(test.a), &(test.b));
+/*
+struct a: 0x7ffee3d43128
+struct b: 0x7ffee3d4312c
+*/
+```
+可以看出前面定义的变量会存在栈中的高位，从大到小，而结构体中的变量在栈中的地址根据定义的顺序升位，从小到大。
+
+下面解释为什么跟`obj`挨着的下一块内存地址上面的值是`<ViewController: 0x7fbcc47036c0> `
+<div class="center">
+<image src="/resource/interview/getInstance2.png" style="width: 500px;"/>
+</div>
+
+在创建`cls`的代码出打一个断点，查看汇编代码
+<div class="center">
+<image src="/resource/interview/getInstance3.png" style="width: 500px;"/>
+</div>
+
+可以看到在创建`cls`之前调用了 `objc_msgSendSuper2`
+<div class="center">
+<image src="/resource/interview/getInstance4.png" style="width: 650px;"/>
+</div>
+
+查看[apple objc4](https://opensource.apple.com/tarballs/objc4/)源码
+
+<div class="center">
+<image src="/resource/interview/getInstance5.png" style="width: 500px;"/>
+</div>
+
+从汇编的实现的注释中可以看出，传进去了两个参数，`real receiver, class`, 然后会再通过`class`获取`superclass`。
+方法的声明如下， 需要传入一个`objc_super`的结构体。
+```cpp
+#if __OBJC2__
+// objc_msgSendSuper2() takes the current search class, not its superclass.
+OBJC_EXPORT id _Nullable
+objc_msgSendSuper2(struct objc_super * _Nonnull super, SEL _Nonnull op, ...)
+```
+所以可以推测调用`[super viewDidLoad]; `会生成一个这样的结构体
+```cpp
+struct objc_super super = {self, [self class]};
+```
+因此`obj`挨这的下一块内存地址上面的值是<ViewController: 0x7fbcc47036c0>
+
+可以使用`lldb`调试验证上面从源码理解是否准确
+<div class="center">
+<image src="/resource/interview/getInstance6.png" style="width: 700px;"/>
+</div>
+
+和前面分析的结论一致
