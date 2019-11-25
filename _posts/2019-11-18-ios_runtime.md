@@ -827,10 +827,10 @@ BOOL imp_removeBlock(IMP anImp)
 ```
 
 #### 应用案例
-1. 利用runtime 的消息转发机制，给没有实现的方法，动态添加方法
+1 . 利用runtime 的消息转发机制，给没有实现的方法，动态添加方法
 [消息转发demo](https://github.com/AprilYoungs/MJ_course/tree/master/ReviewPrepare/08-Runtime课件/MYResoveMessage)
 
-2. 替换系统方法实现，给触发控件时打印信息
+2 . 替换系统方法实现，给触发控件时打印信息
 ```objectivec
 // 给UIControl添加一个分类，在load的时候替换掉方法
 @implementation UIControl (Extension)
@@ -847,7 +847,9 @@ BOOL imp_removeBlock(IMP anImp)
 }
 @end
 ```
-3. 使用使用`block`来处理按钮的点击事件
+
+3 . 使用使用`block`来处理按钮的点击事件
+
 ```objectivec
 char *actionName = "testBtn";
 class_addMethod([self class], (SEL)actionName, imp_implementationWithBlock(^(id reciver, SEL cmd, id sender){
@@ -856,7 +858,8 @@ class_addMethod([self class], (SEL)actionName, imp_implementationWithBlock(^(id 
     
 [btn addTarget:self action:(SEL)actionName forControlEvents:UIControlEventTouchUpInside];
 ```
-4. 打印UIKit控件成员变量，寻找可用的隐藏属性，并使用KVC设置对应的值
+4 . 打印UIKit控件成员变量，寻找可用的隐藏属性，并使用KVC设置对应的值
+
 ```objectivec
 
 void printIvars(Class cls)
@@ -880,7 +883,7 @@ void printIvars(Class cls)
 [textfield setValue:(nullable id) forKeyPath:(nonnull NSString *)];
 ```
 
-5. 字典转模型
+5 . 字典转模型
 > `Foundation` 有一个可以把字典转模型的方法`setValuesForKeysWithDictionary`, 但是这个方法有两点不好。
 
  ```objectivec
