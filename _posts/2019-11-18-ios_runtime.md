@@ -154,7 +154,7 @@ NSLog(@"%s, %s, %s, %s, %s", @encode(int), @encod(float), @encode(double), @enco
 AYPerson *p = [[AYPerson alloc] init];
 AYClass cP = (__bridge AYClass)[p class];
 class_rw_t *data = cP->data();
-const char *name = sel_getNam(data->ro->baseMethodList->first.name);
+const char *name = sel_getName(data->ro->baseMethodList->first.name);
 const char *types =data->ro->baseMethodList->first.types;
 NSLog(@"name: %s,    types: %s", name,types);
 // name: test2:andB:andString:,    types:v32@0:8i16f20@24
@@ -260,6 +260,9 @@ void cache_t::reallocate(mask_t oldCapacity, mask_t newCapacity)
 试例验证代码
 ```cpp
 /// 方法缓存
+        AYPerson *p = [[AYPerson alloc] init];
+        AYClass cP = (__bridge AYClass)[p class];
+
         cache_t pCache = cP->cache;
         for (int i = 0; i < pCache._mask; i++)
         {
@@ -303,7 +306,7 @@ void cache_t::reallocate(mask_t oldCapacity, mask_t newCapacity)
         // 查找缓存方法->test
         
 ```
-
+[AYClass 模仿objc的结构，把Class转成结构体](https://github.com/AprilYoungs/MJ_course/blob/master/ReviewPrepare/08-Runtime课件/AYClass.h)
 ### objc_msgSend 消息机制
 OC中方法调用，其实都是转换成`objc_msgSend`函数的调用
 
@@ -362,6 +365,9 @@ OC中方法调用，其实都是转换成`objc_msgSend`函数的调用
                         sel,
                         method_getImplementation(m),
                         method_getTypeEncoding(m));
+
+
+        // 这里也可以使用imp_implementationWithBlock(id block)来添加方法实现
     }
     
     return [super resolveInstanceMethod: sel];
@@ -527,6 +533,7 @@ NSMethodSignature *ms2 = [[[AYPerson alloc] init] methodSignatureForSelector:@se
 }
 
 //MARK: 3.2.2 类方法处理
+// 决定后面NSInvocation->selector 的类型，必须和 aSelector 的 types 一致
 + (NSMethodSignature *)methodSignatureForSelector:(SEL)aSelector
 {
     if (aSelector == @selector(test))
@@ -710,6 +717,241 @@ struct objc_super {
 - (Class)superclass
 {
     return class_getSuperclass(object_getClass(self));
+}
+```
+
+### runtime 的应用
+[调用了下面API的demo](https://github.com/AprilYoungs/MJ_course/tree/master/ReviewPrepare/08-Runtime课件/MyRuntimeApi)
+#### 常用API - 类
+```cpp
+动态创建一个类（参数：父类，类名，额外的内存空间）
+Class objc_allocateClassPair(Class superclass, const char *name, size_t extraBytes)
+
+注册一个类（要在类注册之前添加成员变量）
+void objc_registerClassPair(Class cls) 
+
+销毁一个类
+void objc_disposeClassPair(Class cls)
+
+获取isa指向的Class
+Class object_getClass(id obj)
+
+设置isa指向的Class
+Class object_setClass(id obj, Class cls)
+
+判断一个OC对象是否为Class
+BOOL object_isClass(id obj)
+
+判断一个Class是否为元类
+BOOL class_isMetaClass(Class cls)
+
+获取父类
+Class class_getSuperclass(Class cls)
+```
+#### 常用API - 成员变量
+```cpp
+获取一个实例变量信息
+Ivar class_getInstanceVariable(Class cls, const char *name)
+
+拷贝实例变量列表（最后需要调用free释放）
+Ivar *class_copyIvarList(Class cls, unsigned int *outCount)
+
+设置和获取成员变量的值
+void object_setIvar(id obj, Ivar ivar, id value)
+id object_getIvar(id obj, Ivar ivar)
+
+动态添加成员变量（已经注册的类是不能动态添加成员变量的）
+BOOL class_addIvar(Class cls, const char * name, size_t size, uint8_t alignment, const char * types)
+
+获取成员变量的相关信息
+const char *ivar_getName(Ivar v)
+const char *ivar_getTypeEncoding(Ivar v)
+```
+#### 常用API - 属性
+```cpp
+获取一个属性
+objc_property_t class_getProperty(Class cls, const char *name)
+
+拷贝属性列表（最后需要调用free释放）
+objc_property_t *class_copyPropertyList(Class cls, unsigned int *outCount)
+
+动态添加属性
+BOOL class_addProperty(Class cls, const char *name, const objc_property_attribute_t *attributes,
+                  unsigned int attributeCount)
+
+动态替换属性
+void class_replaceProperty(Class cls, const char *name, const objc_property_attribute_t *attributes,
+                      unsigned int attributeCount)
+
+获取属性的一些信息
+const char *property_getName(objc_property_t property)
+const char *property_getAttributes(objc_property_t property)
+```
+
+#### 常用API - 方法
+```cpp
+获得一个实例方法、类方法
+Method class_getInstanceMethod(Class cls, SEL name)
+Method class_getClassMethod(Class cls, SEL name)
+
+方法实现相关操作
+IMP class_getMethodImplementation(Class cls, SEL name) 
+IMP method_setImplementation(Method m, IMP imp)
+void method_exchangeImplementations(Method m1, Method m2) 
+
+拷贝方法列表（最后需要调用free释放）
+Method *class_copyMethodList(Class cls, unsigned int *outCount)
+
+动态添加方法
+BOOL class_addMethod(Class cls, SEL name, IMP imp, const char *types)
+
+动态替换方法
+IMP class_replaceMethod(Class cls, SEL name, IMP imp, const char *types)
+
+获取方法的相关信息（带有copy的需要调用free去释放）
+SEL method_getName(Method m)
+IMP method_getImplementation(Method m)
+const char *method_getTypeEncoding(Method m)
+unsigned int method_getNumberOfArguments(Method m)
+char *method_copyReturnType(Method m)
+char *method_copyArgumentType(Method m, unsigned int index)
+
+选择器相关
+const char *sel_getName(SEL sel)
+SEL sel_registerName(const char *str)
+
+用block作为方法实现
+IMP imp_implementationWithBlock(id block)
+id imp_getBlock(IMP anImp)
+BOOL imp_removeBlock(IMP anImp)
+```
+
+#### 应用案例
+1. 利用runtime 的消息转发机制，给没有实现的方法，动态添加方法
+[消息转发demo](https://github.com/AprilYoungs/MJ_course/tree/master/ReviewPrepare/08-Runtime课件/MYResoveMessage)
+
+2. 替换系统方法实现，给触发控件时打印信息
+```objectivec
+// 给UIControl添加一个分类，在load的时候替换掉方法
+@implementation UIControl (Extension)
++ (void)load
+{
+    Method imp1 = class_getInstanceMethod(self, @selector(sendAction:to:forEvent:));
+    Method imp2 = class_getInstanceMethod(self, @selector(ay_sendAction:to:forEvent:));
+    method_exchangeImplementations(imp1, imp2);
+}
+- (void)ay_sendAction:(SEL)action to:(id)target forEvent:(UIEvent *)event
+{
+    NSLog(@"sendAction:%@ to:%@ forEvent:%@", NSStringFromSelector(action), target, event);
+    [self ay_sendAction:action to:target forEvent:event];
+}
+@end
+```
+3. 使用使用`block`来处理按钮的点击事件
+```objectivec
+char *actionName = "testBtn";
+class_addMethod([self class], (SEL)actionName, imp_implementationWithBlock(^(id reciver, SEL cmd, id sender){
+        NSLog(@"block tap btn %@, %@, %@", reciver, NSStringFromSelector(cmd), sender);
+}), "v@:@");
+    
+[btn addTarget:self action:(SEL)actionName forControlEvents:UIControlEventTouchUpInside];
+```
+4. 打印UIKit控件成员变量，寻找可用的隐藏属性，并使用KVC设置对应的值
+```objectivec
+
+void printIvars(Class cls)
+{
+    if (cls == nil) return;
+    
+    NSLog(@"-------Ivars of %s----------", object_getClassName(cls));
+    unsigned int count;
+    Ivar *vars = class_copyIvarList(cls, &count);
+    for (int i=0; i<count; i++)
+    {
+        Ivar v = vars[i];
+        const char *vn = ivar_getName(v);
+        const char *type = ivar_getTypeEncoding(v);
+        NSLog(@"%s - %s", type, vn);
+    }
+    
+    free(vars);
+}
+
+[textfield setValue:(nullable id) forKeyPath:(nonnull NSString *)];
+```
+
+5. 字典转模型
+> `Foundation` 有一个可以把字典转模型的方法`setValuesForKeysWithDictionary`, 但是这个方法有两点不好。
+
+ ```objectivec
+ // 1. 需要先 初始化变量
+ AYHuman *h = [[AYHuman alloc] init];
+
+ NSDictionary *dic = @{@"isArchive": @(YES),
+                              @"name": @"April",
+                              @"age" : @"12",
+                              @"dog" : @{@"name": @"April",
+                                         @"age" : @"12"}
+        };
+
+[h setValuesForKeysWithDictionary:dic];
+// 2. 遇到复杂结构的字典，不能解析嵌套的字段
+@interface AYHuman : AYPerson
+@property(nonatomic, strong) NSString *name;
+@property(nonatomic, assign) int age;
+@property(nonatomic, strong) AYDog *dog;
+@end
+
+@interface AYDog : NSObject
+@property(nonatomic, strong) NSString *name;
+@property(nonatomic, assign) int age;
+@end
+ ```
+ 可以给`NSObject`创建一个分类`NSObject (Extension)`，并添加类方法`+ (instancetype)ay_modelWithDictionary:(NSDictionary *)dic`，在类方法中用`runtime`的接口遍历成员变量，并灵活处理字典中的字段，这样可以给模型中每个值赋予在字典中能找到的值。
+ ```objectivec
+ @implementation NSObject (Extension)
++ (instancetype)ay_modelWithDictionary:(NSDictionary *)dic
+{
+    id model = [[self alloc] init];
+    
+    unsigned int count;
+    Ivar *vars = class_copyIvarList(self, &count);
+    for (int i=0; i < count; i++)
+    {
+        Ivar v = vars[i];
+        NSString *name = [NSString stringWithCString:ivar_getName(v) encoding:NSUTF8StringEncoding];
+        NSString *types = [NSString stringWithCString:ivar_getTypeEncoding(v) encoding:NSUTF8StringEncoding];
+        
+        NSString *clearName = [name substringFromIndex:1];
+        if ([dic objectForKey:clearName])
+        {
+            // 遇到嵌套的 dictionary 就解析里边的模型
+            if ([[dic objectForKey:clearName] isKindOfClass:[NSDictionary class]])
+            {
+                NSString *className = [types substringWithRange:NSMakeRange(2, types.length-3)];
+                Class cls = NSClassFromString(className);
+                [model setValue:[cls ay_modelWithDictionary:[dic objectForKey:clearName]] forKeyPath:name];
+            }
+            else
+            {
+                [model setValue:[dic objectForKey:clearName] forKeyPath:name];
+            }
+        }   
+    }
+    return model;
+}
+@end
+
+// 可以使用下面的方法创建模型
+{
+    NSDictionary *dic = @{@"isArchive": @(YES),
+                              @"name": @"April",
+                              @"age" : @"12",
+                              @"dog" : @{@"name": @"Sam",
+                                         @"age" : @"4"}
+        };
+            
+    AYHuman *hh = [AYHuman ay_modelWithDictionary:dic];
 }
 ```
 

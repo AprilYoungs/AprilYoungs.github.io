@@ -98,14 +98,14 @@ objc_msgSend底层有3大阶段
 > [看图](/blog/2019/11/18/ios_runtime)
 
 * 什么是Runtime？平时项目中有用过么？
-> OC是一门动态性比较强的编程语言，允许很多操作推迟到程序运行时再进行
-OC的动态性就是由Runtime来支撑和实现的，Runtime是一套C语言的API，封装了很多动态性相关的函数
+> OC是一门动态性比较强的编程语言，允许很多操作推迟到程序运行时再进行<br>
+OC的动态性就是由Runtime来支撑和实现的，Runtime是一套C语言的API，封装了很多动态性相关的函数<br>
 平时编写的OC代码，底层都是转换成了Runtime API进行调用<br><br>
 > 具体应用<br>
-利用关联对象（AssociatedObject）给分类添加属性
-遍历类的所有成员变量（修改textfield的占位文字颜色、字典转模型、自动归档解档）
-交换方法实现（交换系统的方法）
-利用消息转发机制解决方法找不到的异常问题
+利用关联对象（AssociatedObject）给分类添加属性<br>
+遍历类的所有成员变量（修改textfield的占位文字颜色、字典转模型、自动归档解档）<br>
+交换方法实现（交换系统的方法）<br>
+利用消息转发机制解决方法找不到的异常问题<br>
 ......
 
 * 写出如下程序的打印结果 `isMemberOfClass`,`isKindOfClass`
@@ -212,11 +212,11 @@ int main(int argc, const char * argv[]) {
 `AYPerson *person = [[AYPerson alloc] init];` 这个`person`是一个由`isa`指针和`_name`组成的结构体，然后`person`指针指向`isa`，`isa`指向`[AYPerson class]`.
 而上面的`obj`指向`cls`, `cls`指向`[AYPerson class]`, 所以`obj`和`person`都存有指向`[AYPerson class]`的指针, 因此obj可以正常调用`print`方法。
 
-> 2. 为什么打印出来是 `<ViewController>`?
+> 2. 为什么打印出来是 `<ViewController>`?<br>
 `person`的`self.name`在运行时会去找内存中跟`isa`挨着的下一块内存地址上面的值。而跟`cls`挨着的是前面定义的变量。
 
 这里讲一下大端下端存储的问题，运行如下代码
-```cpp
+```objectivec
 int a = 2;
 int b = 4;
 int c = 8;
