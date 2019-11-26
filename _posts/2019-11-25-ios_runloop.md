@@ -5,7 +5,7 @@ date:   2019-11-26
 categories: ios
 ---
 
-iOS 程序启动时会启动一个`runloop`这样才能响应app的各种交互事件。
+iOS 程序启动时会创建一个`runloop`这样才能响应app的各种交互事件。
 
 iOS 有两套runloop相关的框架
 `Foundation: NSRunLoop`
@@ -162,8 +162,6 @@ struct __CFRunLoopTimer {
 };
 
 struct __CFRunLoopMode {
-    CFRuntimeBase _base;
-    pthread_mutex_t _lock;	/* must have the run loop locked before locking this */
     CFStringRef _name;
     Boolean _stopped;
     char _padding[3];
@@ -172,6 +170,8 @@ struct __CFRunLoopMode {
     CFMutableArrayRef _observers;
     CFMutableArrayRef _timers;
     CFMutableDictionaryRef _portToV1SourceMap;
+    CFRuntimeBase _base;
+    pthread_mutex_t _lock;	/* must have the run loop locked before locking this */
     __CFPortSet _portSet;
     CFIndex _observerMask;
 #if USE_DISPATCH_SOURCE_FOR_TIMERS
