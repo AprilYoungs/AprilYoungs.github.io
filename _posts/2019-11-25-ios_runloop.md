@@ -34,7 +34,7 @@ iOS 有两套runloop相关的框架
 
 * 线程刚创建时并没有RunLoop对象，RunLoop会在第一次获取它时创建
 
-* RunLoop会在线程结束时销毁
+* RunLoop会在线程结束时销毁 <span sytle="color:#a00;">待验证</span>
 
 * 主线程的RunLoop已经自动获取（创建），子线程默认没有开启RunLoop
 
@@ -102,7 +102,17 @@ CF_EXPORT CFRunLoopRef _CFRunLoopGet0(pthread_t t) {
 * CFRunLoopTimerRef
 * CFRunLoopObserverRef
 
+<div class="center">
+<image src="/resource/runloop/runloopStructs.png" style="width: 350px;"/>
+</div>
+
 ```c
+typedef struct __CFRunLoopMode *CFRunLoopModeRef;
+typedef struct __CFRunLoop * CFRunLoopRef;
+typedef struct __CFRunLoopSource * CFRunLoopSourceRef;
+typedef struct __CFRunLoopObserver * CFRunLoopObserverRef;
+typedef struct __CFRunLoopTimer * CFRunLoopTimerRef;
+
 struct __CFRunLoop {
     pthread_t _pthread;
     CFMutableSetRef _commonModes;
@@ -193,4 +203,284 @@ struct __CFRunLoopMode {
 };
 ```
 
+#### CFRunLoopModeRef
+* CFRunLoopModeRef代表RunLoop的运行模式
+
+* 一个RunLoop包含若干个Mode，每个Mode又包含若干个Source0/Source1/Timer/Observer
+
+* RunLoop启动时只能选择其中一个Mode，作为currentMode
+
+* 如果需要切换Mode，只能退出当前Loop，再重新选择一个Mode进入
+* 不同组的Source0/Source1/Timer/Observer能分隔开来，互不影响
+
+* 如果Mode里没有任何Source0/Source1/Timer/Observer，RunLoop会立马退出
+
+* 不同的mode用来处理不同的事件，比如上班的mode做上班的事，下班的mode做下班的事
+
+* 常见的2种Mode
+    * kCFRunLoopDefaultMode（NSDefaultRunLoopMode）：App的默认Mode，通常主线程是在这个Mode下运行
+    * UITrackingRunLoopMode：界面跟踪 Mode，用于 ScrollView 追踪触摸滑动，保证界面滑动时不受其他 Mode 影响
+
+#### CFRunLoopObserverRef
+```cpp
+/* Run Loop Observer Activities */
+typedef CF_OPTIONS(CFOptionFlags, CFRunLoopActivity) {
+    kCFRunLoopEntry = (1UL << 0),   //进入runloop
+    kCFRunLoopBeforeTimers = (1UL << 1), //即将进入timer
+    kCFRunLoopBeforeSources = (1UL << 2), //即将进入Sources
+    kCFRunLoopBeforeWaiting = (1UL << 5), //即将进入等待
+    kCFRunLoopAfterWaiting = (1UL << 6),  //等待结束
+    kCFRunLoopExit = (1UL << 7),  //退出runloop
+    kCFRunLoopAllActivities = 0x0FFFFFFFU 
+};
+```
+
+添加observer来监听Runloop的状态
+```objectivec
+
+// observer状态回调
+void runLoopObserverCallBack(CFRunLoopObserverRef observer, CFRunLoopActivity activity, void *info)
+{
+    // 打印当前的mode
+    CFRunLoopMode mode = CFRunLoopCopyCurrentMode(CFRunLoopGetCurrent());
+    NSLog(@"----mode: %@", mode);
+    CFRelease(mode);
+    
+//    NSLog(@"runLoopObserverCallBack->%@, %@", observer, info);
+    switch (activity) {
+        case kCFRunLoopEntry:
+            NSLog(@"kCFRunLoopEntry");
+            break;
+        case kCFRunLoopBeforeTimers:
+            NSLog(@"kCFRunLoopBeforeTimers");
+        break;
+        case kCFRunLoopBeforeSources:
+            NSLog(@"kCFRunLoopBeforeSources");
+        break;
+        case kCFRunLoopBeforeWaiting:
+            NSLog(@"kCFRunLoopBeforeWaiting");
+        break;
+        case kCFRunLoopAfterWaiting:
+            NSLog(@"kCFRunLoopAfterWaiting");
+        break;
+        case kCFRunLoopExit:
+            NSLog(@"kCFRunLoopExit");
+        break;
+        case kCFRunLoopAllActivities:
+            NSLog(@"kCFRunLoopAllActivities");
+        break;
+    }
+}
+{
+// 创建观察者
+    // 使用函数来响应事件
+    CFRunLoopObserverRef observer
+    = CFRunLoopObserverCreate(kCFAllocatorDefault,
+                              /*CFAllocatorRef allocator*/
+                               kCFRunLoopEntry |
+                              kCFRunLoopBeforeTimers |
+                              kCFRunLoopBeforeSources |
+                              kCFRunLoopBeforeWaiting |
+                              kCFRunLoopAfterWaiting |
+                              kCFRunLoopExit |
+                              kCFRunLoopAllActivities,
+                              /*CFOptionFlags activities*/
+                              true,
+                              /*Boolean repeats*/
+                              0,
+                              /*CFIndex order*/
+                              &runLoopObserverCallBack,
+                              /*CFRunLoopObserverCallBack callout*/
+                              nil
+                              /*CFRunLoopObserverContext *context*/
+                              );
+                                                            
+    
+    // 使用 block 来响应事件
+    CFRunLoopObserverRef observer1
+    = CFRunLoopObserverCreateWithHandler(kCFAllocatorDefault,
+                                         kCFRunLoopEntry |
+                                         kCFRunLoopBeforeTimers |
+                                         kCFRunLoopBeforeSources |
+                                         kCFRunLoopBeforeWaiting |
+                                         kCFRunLoopAfterWaiting |
+                                         kCFRunLoopExit |
+                                         kCFRunLoopAllActivities,
+                                         true,
+                                         0,
+                                         ^(CFRunLoopObserverRef observer,
+                                           CFRunLoopActivity activity) {
+                                            
+                                            // 监听mode切换
+                                            switch (activity) {
+                                                case kCFRunLoopEntry:
+                                                {
+                                                    CFRunLoopMode mode = CFRunLoopCopyCurrentMode(CFRunLoopGetCurrent());
+                                                                                        
+                                                    NSLog(@"----mode: %@", mode);
+                                                    CFRelease(mode);
+                                                    NSLog(@"kCFRunLoopEntry");
+                                                }
+                                                    break;
+                                                case kCFRunLoopExit:
+                                                {
+                                                    CFRunLoopMode mode = CFRunLoopCopyCurrentMode(CFRunLoopGetCurrent());
+                                                                                        
+                                                    NSLog(@"----mode: %@", mode);
+                                                    CFRelease(mode);
+                                                    NSLog(@"kCFRunLoopExit");
+                                                }
+                                                break;
+                                                case kCFRunLoopAllActivities:
+                                                    NSLog(@"kCFRunLoopAllActivities");
+                                                break;
+                                                default:
+                                                    break;
+                                            }
+        
+                                        });
+    
+    // 添加runloop观察者
+    CFRunLoopAddObserver(CFRunLoopGetMain(), observer1, kCFRunLoopCommonModes);
+    
+    CFRelease(observer);
+    CFRelease(observer1);
+}
+```
+
+### RunLoop 的运行逻辑
+<div class="center">
+<image src="/resource/runloop/runloopFlow.png" style="width: 600px;"/>
+</div>
+<div class="center">
+<image src="/resource/runloop/runloopFlow2.png" style="width: 800px;"/>
+</div>
+
+#### Runloop源码跟读 
+创建一个控制器，并在
+```cpp
+- (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
+{
+    NSLog(@"");
+}
+```
+中打一个断点，进入`lldb`调试模式，使用`bt`查看方法调用的栈
+```cpp
+(lldb) bt
+* thread #1, queue = 'com.apple.main-thread', stop reason = breakpoint 1.1
+  * frame #0: 0x000000010264236d MyRunloop`-[ViewController touchesBegan:withEvent:](self=0x00007fa496c04f40, _cmd="touchesBegan:withEvent:", touches=1 element, event=0x0000600002914280) at ViewController.m:154:5
+    frame #1: 0x00007fff4787c885 UIKitCore`forwardTouchMethod + 340
+    frame #2: 0x00007fff4787c720 UIKitCore`-[UIResponder touchesBegan:withEvent:] + 49
+    frame #3: 0x00007fff4788b93c UIKitCore`-[UIWindow _sendTouchesForEvent:] + 1867
+    frame #4: 0x00007fff4788d524 UIKitCore`-[UIWindow sendEvent:] + 4596
+    frame #5: 0x00007fff47868427 UIKitCore`-[UIApplication sendEvent:] + 356
+    frame #6: 0x00007fff478e987e UIKitCore`__dispatchPreprocessedEventFromEventQueue + 6847
+    frame #7: 0x00007fff478ec344 UIKitCore`__handleEventQueueInternal + 5980
+    frame #8: 0x00007fff23bb2221 CoreFoundation`__CFRUNLOOP_IS_CALLING_OUT_TO_A_SOURCE0_PERFORM_FUNCTION__ + 17
+    frame #9: 0x00007fff23bb214c CoreFoundation`__CFRunLoopDoSource0 + 76
+    frame #10: 0x00007fff23bb1924 CoreFoundation`__CFRunLoopDoSources0 + 180
+    frame #11: 0x00007fff23bac62f CoreFoundation`__CFRunLoopRun + 1263
+    frame #12: 0x00007fff23babe16 CoreFoundation`CFRunLoopRunSpecific + 438
+    frame #13: 0x00007fff38438bb0 GraphicsServices`GSEventRunModal + 65
+    frame #14: 0x00007fff4784fb48 UIKitCore`UIApplicationMain + 1621
+    frame #15: 0x0000000102642704 MyRunloop`main(argc=1, argv=0x00007ffeed5bcd38) at main.m:18:12
+    frame #16: 0x00007fff51a1dc25 libdyld.dylib`start + 1
+    frame #17: 0x00007fff51a1dc25 libdyld.dylib`start + 1
+```
+可以看到进入`runloop`的第一个函数是`CFRunLoopRunSpecific`,下面看到源码
+```cpp
+// 让runloop进入指定的mode
+SInt32 CFRunLoopRunSpecific(CFRunLoopRef rl, CFStringRef modeName, CFTimeInterval seconds, Boolean returnAfterSourceHandled) {     /* DOES CALLOUT */
+    int32_t result = kCFRunLoopRunFinished;
+    // 通知Observer: 进入runloop
+	__CFRunLoopDoObservers(rl, currentMode, kCFRunLoopEntry);
+    // 具体要做的事情
+	result = __CFRunLoopRun(rl, currentMode, seconds, returnAfterSourceHandled, previousMode);
+    // 通知observer: 退出runloop
+    __CFRunLoopDoObservers(rl, currentMode, kCFRunLoopExit);
+    return result;
+}
+
+// 下面的代码删掉了源码中比较复杂的逻辑，只保留关键的方法调用，方便理解runloop的运行流程
+/* rl, rlm are locked on entrance and exit */
+static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInterval seconds, Boolean stopAfterHandle, CFRunLoopModeRef previousMode) {
+
+    int32_t retVal = 0;
+    do {
+        // 通知Observers: 即将处理Timers
+        __CFRunLoopDoObservers(rl, rlm, kCFRunLoopBeforeTimers);
+        // 通知Observers: 即将处理Source
+        __CFRunLoopDoObservers(rl, rlm, kCFRunLoopBeforeSources);
+
+        // 处理block
+        __CFRunLoopDoBlocks(rl, rlm);
+
+        // 处理source0
+        if (__CFRunLoopDoSources0(rl, rlm, stopAfterHandle)) {
+            // 处理block
+            __CFRunLoopDoBlocks(rl, rlm);
+        }
+
+        Boolean poll = sourceHandledThisLoop || (0ULL == timeout_context->termTSR);
+
+        // 判断有无Source1
+        if (__CFRunLoopServiceMachPort(dispatchPort, &msg, sizeof(msg_buffer), &livePort, 0, &voucherState, NULL)) {
+            // 如果有Source1， 就跳转到handle_msg
+            goto handle_msg;
+        }
+        
+        didDispatchPortLastTime = false;
+        
+        // 通知Observers: 即将休眠
+        __CFRunLoopDoObservers(rl, rlm, kCFRunLoopBeforeWaiting);
+        __CFRunLoopSetSleeping(rl);
+        // do not do any user callouts after this point (after notifying of sleeping)
+
+        // Must push the local-to-this-activation ports in on every loop
+        // iteration, as this mode could be run re-entrantly and we don't
+        // want these ports to get serviced.
+
+
+        // 等待别的消息来唤醒当前线程
+        __CFRunLoopServiceMachPort(waitSet, &msg, sizeof(msg_buffer), &livePort, poll ? 0 : TIMEOUT_INFINITY, &voucherState, &voucherCopy);
+            
+            
+        // user callouts now OK again
+        __CFRunLoopUnsetSleeping(rl);
+        
+        // 通知Observers: 休眠结束
+        __CFRunLoopDoObservers(rl, rlm, kCFRunLoopAfterWaiting);
+
+    handle_msg:;
+        if (被timer唤醒) {
+            // 处理timers
+            __CFRunLoopDoTimers(rl, rlm, mach_absolute_time());
+        }
+        else if (被GCD唤醒) {
+            // 处理gcd相关的事情
+            __CFRUNLOOP_IS_SERVICING_THE_MAIN_DISPATCH_QUEUE__(msg);
+        } else {
+            // 处理Source1
+            __CFRunLoopDoSource1(rl, rlm, rls, msg, msg->msgh_size, &reply) || sourceHandledThisLoop;  
+        } 
+        // 处理 Blocks
+        __CFRunLoopDoBlocks(rl, rlm);
+        // 设置返回值
+        if (sourceHandledThisLoop && stopAfterHandle) {
+            retVal = kCFRunLoopRunHandledSource;
+            } else if (timeout_context->termTSR < mach_absolute_time()) {
+                retVal = kCFRunLoopRunTimedOut;
+        } else if (__CFRunLoopIsStopped(rl)) {
+                __CFRunLoopUnsetStopped(rl);
+            retVal = kCFRunLoopRunStopped;
+        } else if (rlm->_stopped) {
+            rlm->_stopped = false;
+            retVal = kCFRunLoopRunStopped;
+        } else if (__CFRunLoopModeIsEmpty(rl, rlm, previousMode)) {
+            retVal = kCFRunLoopRunFinished;
+        }
+    } while (0 == retVal);
+    return retVal;
+}
+```
 reference: [apple core foundation source](https://opensource.apple.com/tarballs/CF/)
