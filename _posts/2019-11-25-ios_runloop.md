@@ -483,4 +483,37 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
     return retVal;
 }
 ```
+
+**关于runloop的休眠**:调用了系统内核的函数，让当前线程彻底休眠，只会占用少量的资源。当有触发事件发生时才会被唤醒。
+
+### Runloop 的应用
+* 解决NSTimer在滑动时停止工作的问题
+> 使用如下方法创建的timer会加入到当前runloop的default mode中
+```objectivec
+/// Creates and returns a new NSTimer object initialized with the
+// specified block object and schedules it on the current run loop 
+// in the default mode.
+[NSTimer scheduledTimerWithTimeInterval:1 repeats:YES block:^(NSTimer * _Nonnull timer) {
+        static int a = 0;
+        CFRunLoopMode mode =  CFRunLoopCopyCurrentMode(CFRunLoopGetCurrent());
+        NSLog(@"%@:%d", mode, a++);
+        CFRelease(mode);
+}];
+```
+> 当界面滚动会进入tracking mode，这个时候timer会暂停, 可以使用下面的方法，添加到通用模式`NSRunLoopCommonModes = UITrackingRunLoopMode | NSDefaultRunLoopMode`
+```objectivec
+NSTimer *timer = [NSTimer timerWithTimeInterval:1 repeats:YES block:^(NSTimer * _Nonnull timer) {
+            static int a = 0;
+            CFRunLoopMode mode =  CFRunLoopCopyCurrentMode(CFRunLoopGetCurrent());
+            NSLog(@"%@:%d", mode, a++);
+            CFRelease(mode);
+    }];
+    
+//NSRunLoopCommonModes = UITrackingRunLoopMode | NSDefaultRunLoopMode
+[[NSRunLoop currentRunLoop] addTimer:timer forMode:NSRunLoopCommonModes];
+```
+
+* 控制线程生命周期(线程保活)
+> 
+
 reference: [apple core foundation source](https://opensource.apple.com/tarballs/CF/)
