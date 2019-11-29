@@ -315,3 +315,28 @@ struct objc_super super = {self, [self class]};
 
 * runloop的mode作用是什么？
 > 常用的有`default`和`tracking`, 不同的`mode`中存有不同的`source, timer, port`, 所以`runloop`在不同的`mode`中会处理不同的事件, 把不同的事件隔离开来，程序运行就会比较流畅。
+
+### 多线程
+* 以下面的代码在主线程执行的会产生死锁吗？
+```objectivec
+NSLog(@"misson: 1");       
+dispatch_sync(dispatch_get_main_queue(), ^{
+    NSLog(@"misson: 2, %@", [NSThread currentThread]);
+});
+NSLog(@"misson: 3");
+```
+> 会<br>1. 主线程的串行队列，意味着需要等misson3执行完之后才能执行misson2<br>2. sync同步执行，需要执行完代码块里边的任务才能执行misson3<br>(1,2)冲突，线程卡死了
+
+* 如下代码运行结果是什么？ 为什么
+```objectivec
+dispatch_queue_t queue = dispatch_get_global_queue(0, 0);
+dispatch_async(queue, ^{
+    NSLog(@"1");
+    [self performSelector:@selector(test) withObject:nil afterDelay:0.0];
+//        [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:2]];
+        
+    NSLog(@"3");
+});
+```
+> 1, 3<br>查看注释<br>This method sets up a timer to perform the aSelector message on the current thread’s run loop. The timer is configured to run in the default mode (NSDefaultRunLoopMode).<br>
+`performSelector:withObject:afterDelay:`不会执行，因为它使用添加到`runloop`的`timer`来执行，子线程的`runloop`没有运行起来，可以通过启动`runloop`来让`performSelector:withObject:afterDelay:`正常执行。
