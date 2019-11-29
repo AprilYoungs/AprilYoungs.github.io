@@ -284,3 +284,34 @@ struct objc_super super = {self, [self class]};
 </div>
 
 和前面分析的结论一致
+
+### Runloop
+* 讲讲 RunLoop，项目中有用到吗？
+> 1. 解决NSTimer在界面滑动时停止工作的问题 <br> 2. 控制线程的生命周期 
+
+* runloop内部实现逻辑？
+> iOS程序启动时会在主线程创建一个`runloop`，并运行，`runloop`进入某个模式之后会处理`sources，timer，block, port, GCD 的 main queue`, 然后进入休眠，有唤醒事件时会被唤醒处理相应事件，处理完之后判断是否退出，满足条件则退出，不然就一直循环下去。当`runloop`没有`timer`,`sources`或者`port`时，`runloop`处理完事件就会退出。
+
+* runloop和线程的关系？
+> 一个线程里边只能有一个`runloop`，主线程开启主`runloop`，其他线程创建的时候没有`runloop`，调用`CFRunLoopGetCurrent()`时会创建一个`runloop`
+
+* timer 与 runloop 的关系？
+> `runloop`里边可以添加多个`timer`，把`timer`添加到`runloop`的指定`mode`中，当`runloop`在对应模式中运行时，会处理当前模式下对应的`timers`.
+
+* 程序中添加每3秒响应一次的NSTimer，当拖动tableview时timer可能无法响应要怎么解决？
+> 一般创建的`timer`会被添加到`default mode`中，而拖动`tableview`时`runloop`会进入`tracking mode`，导致拖动期间`timer`不计时，可以通过把timer添加到`common modes` 来解决这个问题，`common mode` 包含`default mode` 和 `tracking mode`
+
+
+`runloop` 是怎么响应用户操作的， 具体流程是什么样的？
+> iOS程序启动时会在主线程启动一个`runloop`，让程序保持运行状态，当有交互事件发生时，会触发`runloop`的`source0`事件，`source0`再调用`Application`的响应方法，`applicaiton`根据响应链的流程把事件传递到对应方法中，如果没有实现响应方法，程序就什么都不处理。
+
+* 说说`runLoop`的几种状态
+>   kCFRunLoopEntry = (1UL << 0),   //进入runloop
+    kCFRunLoopBeforeTimers = (1UL << 1), //即将进入timer
+    kCFRunLoopBeforeSources = (1UL << 2), //即将进入Sources
+    kCFRunLoopBeforeWaiting = (1UL << 5), //即将进入等待
+    kCFRunLoopAfterWaiting = (1UL << 6),  //等待结束
+    kCFRunLoopExit = (1UL << 7),  //退出runloop
+
+* runloop的mode作用是什么？
+> 常用的有`default`和`tracking`, 不同的`mode`中存有不同的`source, timer, port`, 所以`runloop`在不同的`mode`中会处理不同的事件, 把不同的事件隔离开来，程序运行就会比较流畅。

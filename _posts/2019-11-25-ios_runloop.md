@@ -28,15 +28,15 @@ iOS 有两套runloop相关的框架
 ```
 
 ### runloop 与 线程的关系
-* 每条线程都有唯一的一个与之对应的RunLoop对象
+* 每条线程都有唯一的一个与之对应的`RunLoop`对象
 
-* RunLoop保存在一个全局的Dictionary里，线程作为key，RunLoop作为value
+* RunLoop保存在一个全局的`Dictionary`里，线程作为`key，RunLoop`作为`value`
 
-* 线程刚创建时并没有RunLoop对象，RunLoop会在第一次获取它时创建
+* 线程刚创建时并没有`RunLoop`对象，`RunLoop`会在第一次获取它时创建
 
-* RunLoop会在线程结束时销毁 <span sytle="color:#a00;">待验证</span>
+* 没有待办事件时，`RunLoop`会在线程结束时销毁
 
-* 主线程的RunLoop已经自动获取（创建），子线程默认没有开启RunLoop
+* 主线程的`RunLoop`已经自动获取（创建），子线程默认没有开启`RunLoop`
 
 查看`CFRunLoopGetCurrent`源码
 ```c
@@ -51,16 +51,16 @@ CFRunLoopRef CFRunLoopGetCurrent(void) {
 // t==0 is a synonym for "main thread" that always works
 CF_EXPORT CFRunLoopRef _CFRunLoopGet0(pthread_t t) {
     if (pthread_equal(t, kNilPthreadT)) {
-	t = pthread_main_thread_np();
+	    t = pthread_main_thread_np();
     }
     // 如果还没有创建存runloop的全局字典，先创建一个
     // 并创建主线程的runloop
     __CFLock(&loopsLock);
     if (!__CFRunLoops) {
         __CFUnlock(&loopsLock);
-	CFMutableDictionaryRef dict = CFDictionaryCreateMutable(kCFAllocatorSystemDefault, 0, NULL, &kCFTypeDictionaryValueCallBacks);
-	CFRunLoopRef mainLoop = __CFRunLoopCreate(pthread_main_thread_np());
-	CFDictionarySetValue(dict, pthreadPointer(pthread_main_thread_np()), mainLoop);
+	    CFMutableDictionaryRef dict = CFDictionaryCreateMutable(kCFAllocatorSystemDefault, 0, NULL, &kCFTypeDictionaryValueCallBacks);
+	    CFRunLoopRef mainLoop = __CFRunLoopCreate(pthread_main_thread_np());
+	    CFDictionarySetValue(dict, pthreadPointer(pthread_main_thread_np()), mainLoop);
 	if (!OSAtomicCompareAndSwapPtrBarrier(NULL, dict, (void * volatile *)&__CFRunLoops)) {
 	    CFRelease(dict);
 	}
@@ -204,24 +204,24 @@ struct __CFRunLoopMode {
 ```
 
 #### CFRunLoopModeRef
-* CFRunLoopModeRef代表RunLoop的运行模式
+* `CFRunLoopModeRef`代表`RunLoop`的运行模式
 
-* 一个RunLoop包含若干个Mode，每个Mode又包含若干个Source0/Source1/Timer/Observer
+* 一个`RunLoop`包含若干个`Mode`，每个`Mode`又包含若干个`Source0/Source1/Timer/Observer`
 
-* RunLoop启动时只能选择其中一个Mode，作为currentMode
+* `RunLoop`启动时只能选择其中一个`Mode`，作为`currentMode`
 
-* 如果需要切换Mode，只能退出当前Loop，再重新选择一个Mode进入
-* 不同组的Source0/Source1/Timer/Observer能分隔开来，互不影响
+* 如果需要切换`Mode`，只能退出当前`Loop`，再重新选择一个`Mode`进入
 
-* 如果Mode里没有任何Source0/Source1/Timer/Observer，RunLoop会立马退出
+* 不同组的`Source0/Source1/Timer/Observer`能分隔开来，互不影响
 
-* 不同的mode用来处理不同的事件，比如上班的mode做上班的事，下班的mode做下班的事
-
-* 常见的2种Mode
-    * kCFRunLoopDefaultMode（NSDefaultRunLoopMode）：App的默认Mode，通常主线程是在这个Mode下运行
-    * UITrackingRunLoopMode：界面跟踪 Mode，用于 ScrollView 追踪触摸滑动，保证界面滑动时不受其他 Mode 影响
+* 如果`Mode`里没有任何`Source0/Source1/Timer/Observer`，`RunLoop`会立马退出
+    * 不同的`mode`用来处理不同的事件，比如上班的`mode`做上班的事，下班的`mode`做下班的事
+* 常见的2种`Mode`
+    * `kCFRunLoopDefaultMode（NSDefaultRunLoopMode）`：App的默认Mode，通常主线程是在这个`Mode`下运行
+    * `UITrackingRunLoopMode`：界面跟踪 `Mode`，用于 `ScrollView` 追踪触摸滑动，保证界面滑动时不受其他 `Mode` 影响
 
 #### CFRunLoopObserverRef
+`runloop`的不同状态
 ```cpp
 /* Run Loop Observer Activities */
 typedef CF_OPTIONS(CFOptionFlags, CFRunLoopActivity) {
@@ -235,9 +235,8 @@ typedef CF_OPTIONS(CFOptionFlags, CFRunLoopActivity) {
 };
 ```
 
-添加observer来监听Runloop的状态
+添加`observer`来监听`Runloop`的状态
 ```objectivec
-
 // observer状态回调
 void runLoopObserverCallBack(CFRunLoopObserverRef observer, CFRunLoopActivity activity, void *info)
 {
@@ -387,8 +386,22 @@ void runLoopObserverCallBack(CFRunLoopObserverRef observer, CFRunLoopActivity ac
     frame #16: 0x00007fff51a1dc25 libdyld.dylib`start + 1
     frame #17: 0x00007fff51a1dc25 libdyld.dylib`start + 1
 ```
-可以看到进入`runloop`的第一个函数是`CFRunLoopRunSpecific`,下面看到源码
+可以看到进入`runloop`的第一个函数是`CFRunLoopRunSpecific`,下面查看源码
 ```cpp
+//循环进入runloop，使用CFRunLoopStop只能停止当前runloop，然后又会重新进入
+void CFRunLoopRun(void) {	/* DOES CALLOUT */
+    int32_t result;
+    do {
+        result = CFRunLoopRunSpecific(CFRunLoopGetCurrent(), kCFRunLoopDefaultMode, 1.0e10, false);
+        CHECK_FOR_FORK();
+    } while (kCFRunLoopRunStopped != result && kCFRunLoopRunFinished != result);
+}
+
+SInt32 CFRunLoopRunInMode(CFStringRef modeName, CFTimeInterval seconds, Boolean returnAfterSourceHandled) {     /* DOES CALLOUT */
+    CHECK_FOR_FORK();
+    return CFRunLoopRunSpecific(CFRunLoopGetCurrent(), modeName, seconds, returnAfterSourceHandled);
+}
+
 // 让runloop进入指定的mode
 SInt32 CFRunLoopRunSpecific(CFRunLoopRef rl, CFStringRef modeName, CFTimeInterval seconds, Boolean returnAfterSourceHandled) {     /* DOES CALLOUT */
     int32_t result = kCFRunLoopRunFinished;
@@ -488,7 +501,9 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
 
 ### Runloop 的应用
 * 解决NSTimer在滑动时停止工作的问题
+
 > 使用如下方法创建的timer会加入到当前runloop的default mode中
+
 ```objectivec
 /// Creates and returns a new NSTimer object initialized with the
 // specified block object and schedules it on the current run loop 
@@ -501,6 +516,7 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
 }];
 ```
 > 当界面滚动会进入tracking mode，这个时候timer会暂停, 可以使用下面的方法，添加到通用模式`NSRunLoopCommonModes = UITrackingRunLoopMode | NSDefaultRunLoopMode`
+
 ```objectivec
 NSTimer *timer = [NSTimer timerWithTimeInterval:1 repeats:YES block:^(NSTimer * _Nonnull timer) {
             static int a = 0;
@@ -514,6 +530,85 @@ NSTimer *timer = [NSTimer timerWithTimeInterval:1 repeats:YES block:^(NSTimer * 
 ```
 
 * 控制线程生命周期(线程保活)
-> 
+
+> 新建一个线程
+
+```objectivec
+NSThread *thread = [[NSThread alloc] initWithTarget:self selector:@selector(test) object:nil];
+[thread start];
+```
+
+> 线程执行完一个任务之后就会被回收，下次还需要处理任务时又需要重新创建一个新的线程，这样子比较消耗资源，所有在不需要并发的情况可以考虑让线程保活，使用同一个线程处理不同时间点需要处理的事务
+
+```objectivec
+self.stopRunloop = false;
+__weak typeof(self) weakSelf = self;
+// 如果不开启一个运行中的runloop，线程执行完一个事件时候就关闭
+AYThread *thread = [[AYThread alloc] initWithBlock:^{
+    NSLog(@"%s, %@", __func__, [NSThread currentThread]);
+    
+    // 线程保活，添加Port 或者 Timer，不然执行完这个函数线程就释放了.即使被强引用
+    [[NSRunLoop currentRunLoop] addPort:[[NSPort alloc] init] forMode:NSDefaultRunLoopMode];
+    
+    //        static int count = 0;
+    //        NSTimer *timer = [NSTimer timerWithTimeInterval:1 repeats:YES block:^(NSTimer * _Nonnull timer) {
+    //            NSLog(@"%d", count++);
+    //        }];
+    //        [[NSRunLoop currentRunLoop] addTimer:timer forMode:NSDefaultRunLoopMode];
+    
+    
+    // 查看官方注释, 使用这种方法只要有source, runloop永远不会结束
+    // [[NSRunLoop currentRunLoop] run];
+    
+    
+    // 重复启动runloop让线程保活
+    while (weakSelf && !weakSelf.isStopRunloop)
+    {
+        // 处理完一个事件之后，这个runloop就结束了，
+        // 会进入while循环再次开启runloop等待事件
+        NSLog(@"runloop run");
+        [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate distantFuture]];
+    }
+}];
+    
+[thread start];
+self.thread = thread;
+```
+> 让方法在这个线程上执行
+
+```objectivec
+// waitUntilDone:NO 直接继续执行下面的代码
+// waitUntilDone:YES 等Selector执行完成后再执行后面的代码
+// 使用同一个线程，处理串行任务
+[self performSelector:@selector(test) onThread:self.thread withObject:nil waitUntilDone:NO];
+```
+
+> 在必要的时候停止这个线程的runloop，这样才能线程才能被释放
+
+```objectivec
+- (void)dealloc
+{
+    [self removeThread];
+    NSLog(@"%s", __func__);
+}
+
+- (void)stopRunloop
+{   
+    // 进入子线程中，停止当前runloop
+    CFRunLoopStop(CFRunLoopGetCurrent());
+}
+
+- (void)removeThread
+{
+    NSLog(@"%s", __func__);
+    if (self.thread != nil)
+    {
+        self.stopRunloop = true;
+        [self performSelector:@selector(stopRunloop) onThread:self.thread withObject:nil waitUntilDone:YES];
+        self.thread = nil;
+    }
+}
+```
+[线程保活的demo](https://github.com/AprilYoungs/MJ_course/tree/master/ReviewPrepare/09-RunLoop/AYPermanetThread)
 
 reference: [apple core foundation source](https://opensource.apple.com/tarballs/CF/)
