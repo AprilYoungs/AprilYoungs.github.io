@@ -307,6 +307,95 @@ pthread_cond_destroy(&_cond);
 最后调用`callsys`进入睡眠等待状态。
 `pthread_mutex`也是类似的情况
 
+#### NSLock、NSRecursiveLock
+`NSLock`是对`mutex`普通锁的封装
+`NSRecursiveLock`是对`mutex`递归锁的封装，API跟`NSLock`基本一致
+```objectivec
+@protocol NSLocking
+- (void)lock;
+- (void)unlock;
+@end
+
+@interface NSLock : NSObject <NSLocking> {
+- (BOOL)tryLock;
+- (BOOL)lockBeforeDate:(NSDate *)limit;
+
+@interface NSRecursiveLock : NSObject <NSLocking> {
+- (BOOL)tryLock;
+- (BOOL)lockBeforeDate:(NSDate *)limit;
+```
+#### NSCondition
+`NSCondition`是对`mutex`和`cond`的封装
+```objectivec
+@interface NSCondition : NSObject <NSLocking> {
+- (void)wait;
+- (BOOL)waitUntilDate:(NSDate *)limit;
+- (void)signal;
+- (void)broadcast;
+```
+
+#### NSConditionLock
+`NSConditionLock`是对`NSCondition`的进一步封装，可以设置具体的条件值
+```objectivec
+@interface NSConditionLock : NSObject <NSLocking> {
+- (instancetype)initWithCondition:(NSInteger)condition;
+@property (readonly) NSInteger condition;
+- (void)lockWhenCondition:(NSInteger)condition;
+- (BOOL)tryLock;
+- (BOOL)tryLockWhenCondition:(NSInteger)condition;
+- (void)unlockWithCondition:(NSInteger)condition;
+- (BOOL)lockBeforeDate:(NSDate *)limit;
+- (BOOL)lockWhenCondition:(NSInteger)condition beforeDate:(NSDate *)limit;
+```
+比如下面这样
+```objectivec
+- (void)otherTest1
+{
+    [[[NSThread alloc] initWithTarget:self selector:@selector(__three) object:nil] start];
+    
+    [[[NSThread alloc] initWithTarget:self selector:@selector(__two) object:nil] start];
+    
+    [[[NSThread alloc] initWithTarget:self selector:@selector(__one) object:nil] start];
+}
+
+- (void)__one
+{
+    [self.conditionLock lockWhenCondition:1];
+    sleep(1);
+    NSLog(@"%s", __func__);
+    [self.conditionLock unlockWithCondition:2];
+}
+
+- (void)__two
+{
+    [self.conditionLock lockWhenCondition:2];
+    sleep(1);
+    NSLog(@"%s", __func__);
+    [self.conditionLock unlockWithCondition:3];
+}
+
+- (void)__three
+{
+    [self.conditionLock lockWhenCondition:3];
+    sleep(1);
+    NSLog(@"%s", __func__);
+    [self.conditionLock unlockWithCondition:4];
+}
+```
+可以设置线程依赖，不管按什么顺序调用，方法会按照`__one,__two,__three`的顺序执行。
+
+#### dispatch_queue
+直接使用GCD的串行队列，也是可以实现线程同步的
+```objectivec
+// 创建串行队列
+dispatch_queue_t queue = dispatch_queue_create("theQueue", DISPATCH_QUEUE_SERIAL);
+// 把要保证线程安全的任务丢到队列中去执行
+dispatch_sync(queue, ^{
+    // 任务
+});
+```
+
+
 
 ## GNUstep
 GNUstep是GNU计划的项目之一，它将Cocoa的OC库重新开源实现了一遍
