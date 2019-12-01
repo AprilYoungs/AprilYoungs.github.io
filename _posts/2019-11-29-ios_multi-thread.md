@@ -108,3 +108,213 @@ dispatch_group_notify(group, dispatch_get_main_queue(), ^{
     }
 });
 ```
+
+### 多线程的安全隐患
+* 资源共享
+    * 1块资源可能被多个线程共享，也就是多个线程可能会访问同一块资源
+    * 比如多个线程访问同一个对象，同一个变量，同一个文件
+* 当多个线程访问同一块资源时，很容易引发数据错乱和数据安全问题
+
+#### 案例
+* 多线程安全隐患示例1 – 存钱取钱
+<div class="center">
+<image src="/resource/Threads/threadsafe1.png" style="width: 600px;"/>
+</div>
+
+* 多线程安全隐患示例2 - 卖票
+<div class="center">
+<image src="/resource/Threads/threadsafe2.png" style="width: 600px;"/>
+</div>
+
+#### 多线程安全隐患分析
+<div class="center">
+<image src="/resource/Threads/threadsafe3.png" style="width: 600px;"/>
+</div>
+
+#### 解决方案
+使用线程同步技术（同步，就是协同步调，按预定的先后次序进行）
+常见的线程同步技术是： 加锁
+
+<div class="center">
+<image src="/resource/Threads/threadsafe4.png" style="width: 600px;"/>
+</div>
+
+### iOS中的线程同步方案
+* OSSpinLock
+* os_unfair_lock
+* pthread_mutex
+* dispatch_semaphore
+* dispatch_queue(DISPATCH_QUEUE_SERIAL)
+* NSLock
+* NSRecursiveLock
+* NSCondition
+* NSConditionLock
+* @synchronized
+
+#### OSSpinLock
+* `OSSpinLock`叫做”自旋锁”，等待锁的线程会处于忙等（busy-wait）状态，一直占用着CPU资源
+* 目前已经不再安全，可能会出现优先级反转问题
+* 如果等待锁的线程优先级较高，它会一直占用着CPU资源，优先级低的线程就无法释放锁
+> 比如说现在有 `thread 1`优先级较高，`thread 2`优先级较低，但是`thread 2`先访问某个变量并加锁了，这个时候再切换到`thread 1`，它也需要访问这个变量，但是这个变量已经加锁了，`thread 1`就会进入 忙等状态，而`thread 1`的优先级比较高，所以需要等到`thread 1`的任务执行完之后才会切换到`thread 2`，但是`thread 2`不解锁`thread 1`就无法进行下去，所以会卡死
+* 需要导入头文件`#import <libkern/OSAtomic.h>`
+```cpp
+// 初始化
+static OSSpinLock lock = OS_SPINLOCK_INIT;
+// 尝试加锁（如果不需要等待，就加锁并返回true，需要等待就不加锁并返回false）
+// 可以避免线程卡死，如果需要等待就不执行操作
+BOOL result = OSSpinLockTry(&lock);
+// 加锁
+OSSpinLockLock(&lock);
+// 解锁
+OSSpinLockUnlock(&lock);
+```
+不过 `OSSpinLock`在**iOS 10** 已经开始弃用了, 推荐使用`os_unfair_lock`
+
+#### os_unfair_lock
+* os_unfair_lock用于取代不安全的OSSpinLock ，从iOS10开始才支持
+* 从底层调用看，等待os_unfair_lock锁的线程会处于休眠状态，并非忙等
+* 需要导入头文件`#import <os/lock.h>`
+```cpp
+// 初始化
+static os_unfair_lock lock = OS_UNFAIR_LOCK_INIT;
+// 尝试加锁
+BOOL result = os_unfair_lock_trylock(&lock);
+// 加锁
+os_unfair_lock_lock(&lock);
+// 解锁
+os_unfair_lock_unlock(&lock);
+```
+
+#### pthread_mutex
+* mutex叫做”互斥锁”，等待锁的线程会处于休眠状态
+* 需要导入头文件#import <pthread.h>
+```cpp
+    // 初始化锁的属性
+    pthread_mutexattr_t attr;
+    pthread_mutexattr_init(&attr);
+    /*
+     #define PTHREAD_MUTEX_NORMAL        0
+     #define PTHREAD_MUTEX_ERRORCHECK    1
+     #define PTHREAD_MUTEX_RECURSIVE        2
+     #define PTHREAD_MUTEX_DEFAULT        PTHREAD_MUTEX_NORMAL
+     */
+    pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_NORMAL);
+    
+    // 初始化锁
+    pthread_mutex_t mutex;
+    pthread_mutex_init(&mutex, &attr);
+    
+    // 销毁相关资源
+    pthread_mutexattr_destroy(&attr);
+    pthread_mutex_destroy(&mutex);
+```
+普通的锁如果对同一段代码重复加锁，会陷入锁死状态，比如下面这样
+```cpp
+- (void)otherTest1
+{
+    pthread_mutex_lock(&_mutex);
+    NSLog(@"%s", __func__);
+    static int count = 0;
+    if (count < 10)
+    {
+        count++;
+        [self otherTest1];
+    }
+    pthread_mutex_unlock(&_mutex);
+}
+```
+**递归锁**: 同一个线程中可以重复加锁的锁，设置以下mutex的属性即可
+```cpp
+// 初始化锁的属性
+pthread_mutexattr_t attr;
+pthread_mutexattr_init(&attr);
+// 递归锁
+pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+// 初始化锁
+pthread_mutex_t mutex;
+pthread_mutex_init(&mutex, &attr);
+```
+
+**条件锁**：某件事发生需要满足一个条件之后才能继续执行，可以使用条件锁
+> 比如卖东西和生产东西，当东西售罄之后，需要等待生产好商品才能继续销售商品。
+```cpp
+// 初始化条件， NULL代表默认属性
+pthread_cond_init(&_cond, NULL);
+// 解锁，并进入条件等待，等收到信号并且可以重新加锁才会继续执行
+pthread_cond_wait(&_cond, &_mutex);
+// 激活一个等待该条件的线程
+pthread_cond_signal(&_cond);
+// 激活所有等待该条件的线程
+pthread_cond_broadcast(&_cond);
+// 销毁资源
+pthread_cond_destroy(&_cond);
+```
+
+#### 自旋锁 & 互斥锁
+**自旋锁**是高级锁，一旦发现已经被锁了就会进入`while`循环，占有cpu资源，直到可以重新上锁
+**互斥锁**是低级锁，一旦发现已经被锁了就会进入睡眠状态，等待可以重新上锁再唤醒
+`OSSpinLock`是**自旋锁**，`os_unfair_lock，pthread_mutex`是**互斥锁**
+
+可以在即将加锁的代码中打断点，查看加锁不成功的汇编来验证
+**OSSpinLock**
+<div class="center">
+<image src="/resource/Threads/osspinlock1.png" style="width: 500px;"/>
+</div>
+
+<div class="center">
+<image src="/resource/Threads/osspinlock2.png" style="width: 500px;"/>
+</div>
+
+<div class="center">
+<image src="/resource/Threads/osspinlock3.png" style="width: 500px;"/>
+</div>
+
+<div class="center">
+<image src="/resource/Threads/osspinlock4.png" style="width: 500px;"/>
+</div>
+
+<div class="center">
+<image src="/resource/Threads/osspinlock5.png" style="width: 500px;"/>
+</div>
+上面的代码进入while循环
+
+**os_unfair_lock**
+<div class="center">
+<image src="/resource/Threads/unfairlock1.png" style="width: 500px;"/>
+</div>
+<div class="center">
+<image src="/resource/Threads/unfairlock2.png" style="width: 500px;"/>
+</div>
+<div class="center">
+<image src="/resource/Threads/unfairlock3.png" style="width: 500px;"/>
+</div>
+<div class="center">
+<image src="/resource/Threads/unfairlock4.png" style="width: 500px;"/>
+</div>
+<div class="center">
+<image src="/resource/Threads/unfairlock5.png" style="width: 500px;"/>
+</div>
+<div class="center">
+<image src="/resource/Threads/unfairlock6.png" style="width: 500px;"/>
+</div>
+<div class="center">
+<image src="/resource/Threads/unfairlock7.png" style="width: 500px;"/>
+</div>
+<div class="center">
+<image src="/resource/Threads/unfairlock8.png" style="width: 500px;"/>
+</div>
+
+最后调用`callsys`进入睡眠等待状态。
+`pthread_mutex`也是类似的情况
+
+
+## GNUstep
+GNUstep是GNU计划的项目之一，它将Cocoa的OC库重新开源实现了一遍
+
+源码地址：http://www.gnustep.org/resources/downloads.php
+
+<div class="center">
+<image src="/resource/Threads/GNUstep.png" style="width: 600px;"/>
+</div>
+
+虽然GNUstep不是苹果官方源码，但还是具有一定的参考价值
