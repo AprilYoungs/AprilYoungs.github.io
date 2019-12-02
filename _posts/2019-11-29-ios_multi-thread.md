@@ -395,6 +395,150 @@ dispatch_sync(queue, ^{
 });
 ```
 
+#### dispatch_semaphore
+**semaphore**叫做”信号量”
+信号量的初始值，可以用来控制线程并发访问的最大数量
+信号量的初始值为1，代表同时只允许1条线程访问资源，保证线程同步
+```objectivec
+// 设置信号量的初始值，用来控制最大并发量，这里最大并发量是5
+dispatch_semaphore_t semaphore = dispatch_semaphore_create(5);
+// 设置为1, 保证没有只有一个线程可以访问
+dispatch_semaphore_t singleSemaphore = dispatch_semaphore_create(1);
+// 如果信号量的值<=0, 当前线程就会进入休眠等待(直到信号量的值>0)
+// 如果信号量的值>0,就减1，然后往下执行后面的代码
+dispatch_semaphore_wait(singleSemaphore, DISPATCH_TIME_FOREVER);
+需要保证线程同步的代码 ...
+// 让信号量的值加1
+dispatch_semaphore_signal(singleSemaphore);
+```
+
+#### @synchronized
+`@synchronized`是对`os_unfair_recursive_lock`递归锁的封装(旧的版本是对`mutex`递归锁的封装）
+源码查看：objc4中的`objc-sync.mm`文件
+`@synchronized(obj)`内部会生成obj对应的递归锁，然后进行加锁、解锁操作
+
+在调用`@synchronized`处打断点
+<div class="center">
+<image src="/resource/Threads/synchronized0.png" style="width: 400px;"/>
+</div>
+
+查看汇编代码，可以看到在同步开始处调用了`objc_sync_enter`,在结束处调用了 `objc_sync_exit`
+<div class="center">
+<image src="/resource/Threads/synchronized.png" style="width: 900px;"/>
+</div>
+
+查看[objc4](https://opensource.apple.com/tarballs/objc4/)源码
+```objectivec
+// Begin synchronizing on 'obj'. 
+// Allocates recursive mutex associated with 'obj' if needed.
+// Returns OBJC_SYNC_SUCCESS once lock is acquired.  
+int objc_sync_enter(id obj)
+{
+    int result = OBJC_SYNC_SUCCESS;
+
+    if (obj) {
+        SyncData* data = id2data(obj, ACQUIRE);
+        assert(data);
+        data->mutex.lock();
+    } else {
+        // @synchronized(nil) does nothing
+        if (DebugNilSync) {
+            _objc_inform("NIL SYNC DEBUG: @synchronized(nil); set a breakpoint on objc_sync_nil to debug");
+        }
+        objc_sync_nil();
+    }
+
+    return result;
+}
+
+// End synchronizing on 'obj'. 
+// Returns OBJC_SYNC_SUCCESS or OBJC_SYNC_NOT_OWNING_THREAD_ERROR
+int objc_sync_exit(id obj)
+{
+    int result = OBJC_SYNC_SUCCESS;
+    
+    if (obj) {
+        SyncData* data = id2data(obj, RELEASE); 
+        if (!data) {
+            result = OBJC_SYNC_NOT_OWNING_THREAD_ERROR;
+        } else {
+            bool okay = data->mutex.tryUnlock();
+            if (!okay) {
+                result = OBJC_SYNC_NOT_OWNING_THREAD_ERROR;
+            }
+        }
+    } else {
+        // @synchronized(nil) does nothing
+    }
+	
+
+    return result;
+}
+
+typedef struct alignas(CacheLineSize) SyncData {
+    struct SyncData* nextData;
+    DisguisedPtr<objc_object> object;
+    int32_t threadCount;  // number of THREADS using this block
+    recursive_mutex_t mutex;
+} SyncData;
+
+using recursive_mutex_t = recursive_mutex_tt<LOCKDEBUG>;
+
+template <bool Debug>
+class recursive_mutex_tt : nocopy_t {
+    os_unfair_recursive_lock mLock;
+
+  public:
+    constexpr recursive_mutex_tt() : mLock(OS_UNFAIR_RECURSIVE_LOCK_INIT) {
+        lockdebug_remember_recursive_mutex(this);
+    }
+
+    constexpr recursive_mutex_tt(const fork_unsafe_lock_t unsafe)
+        : mLock(OS_UNFAIR_RECURSIVE_LOCK_INIT)
+    { }
+
+    void lock()
+    {
+        lockdebug_recursive_mutex_lock(this);
+        os_unfair_recursive_lock_lock(&mLock);
+    }
+
+    void unlock()
+    {
+        lockdebug_recursive_mutex_unlock(this);
+
+        os_unfair_recursive_lock_unlock(&mLock);
+    }
+
+    void forceReset()
+    {
+        lockdebug_recursive_mutex_unlock(this);
+
+        bzero(&mLock, sizeof(mLock));
+        mLock = os_unfair_recursive_lock OS_UNFAIR_RECURSIVE_LOCK_INIT;
+    }
+
+    bool tryUnlock()
+    {
+        if (os_unfair_recursive_lock_tryunlock4objc(&mLock)) {
+            lockdebug_recursive_mutex_unlock(this);
+            return true;
+        }
+        return false;
+    }
+
+    void assertLocked() {
+        lockdebug_recursive_mutex_assert_locked(this);
+    }
+
+    void assertUnlocked() {
+        lockdebug_recursive_mutex_assert_unlocked(this);
+    }
+};
+```
+一进入`objc_sync_enter`根据传进去的obj地址生成一个锁，并把它存在一个哈希表中，再用这个锁进行加锁
+解锁的时候`objc_sync_exit`根据原来传进的obj地址查找对应的锁，并移除哈希表中的键值对，再用这个锁来解锁
+
 
 
 ## GNUstep
