@@ -539,6 +539,63 @@ class recursive_mutex_tt : nocopy_t {
 一进入`objc_sync_enter`根据传进去的obj地址生成一个锁，并把它存在一个哈希表中，再用这个锁进行加锁
 解锁的时候`objc_sync_exit`根据原来传进的obj地址查找对应的锁，并移除哈希表中的键值对，再用这个锁来解锁
 
+#### Atomic
+```cpp
+id objc_getProperty(id self, SEL _cmd, ptrdiff_t offset, BOOL atomic) {
+    if (offset == 0) {
+        return object_getClass(self);
+    }
+
+    // Retain release world
+    id *slot = (id*) ((char*)self + offset);
+    if (!atomic) return *slot;
+        
+    // Atomic retain release world
+    spinlock_t& slotlock = PropertyLocks[slot];
+    slotlock.lock();
+    id value = objc_retain(*slot);
+    slotlock.unlock();
+    
+    // for performance, we (safely) issue the autorelease OUTSIDE of the spinlock.
+    return objc_autoreleaseReturnValue(value);
+}
+
+
+static inline void reallySetProperty(id self, SEL _cmd, id newValue, ptrdiff_t offset, bool atomic, bool copy, bool mutableCopy) __attribute__((always_inline));
+
+static inline void reallySetProperty(id self, SEL _cmd, id newValue, ptrdiff_t offset, bool atomic, bool copy, bool mutableCopy)
+{
+    if (offset == 0) {
+        object_setClass(self, newValue);
+        return;
+    }
+
+    id oldValue;
+    id *slot = (id*) ((char*)self + offset);
+
+    if (copy) {
+        newValue = [newValue copyWithZone:nil];
+    } else if (mutableCopy) {
+        newValue = [newValue mutableCopyWithZone:nil];
+    } else {
+        if (*slot == newValue) return;
+        newValue = objc_retain(newValue);
+    }
+
+    if (!atomic) {
+        oldValue = *slot;
+        *slot = newValue;
+    } else {
+        spinlock_t& slotlock = PropertyLocks[slot];
+        slotlock.lock();
+        oldValue = *slot;
+        *slot = newValue;        
+        slotlock.unlock();
+    }
+
+    objc_release(oldValue);
+}
+```
 
 
 ## GNUstep
