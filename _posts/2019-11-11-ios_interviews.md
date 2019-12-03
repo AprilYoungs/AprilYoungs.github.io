@@ -340,3 +340,34 @@ dispatch_async(queue, ^{
 ```
 > 1, 3<br>查看注释<br>This method sets up a timer to perform the aSelector message on the current thread’s run loop. The timer is configured to run in the default mode (NSDefaultRunLoopMode).<br>
 `performSelector:withObject:afterDelay:`不会执行，因为它使用添加到`runloop`的`timer`来执行，子线程的`runloop`没有运行起来，可以通过启动`runloop`来让`performSelector:withObject:afterDelay:`正常执行。
+
+* 你理解的多线程？
+> iOS
+* iOS的多线程方案有哪几种？你更倾向于哪一种？
+
+* 你在项目中用过 GCD 吗？
+
+* GCD 的队列类型
+
+* 说一下 OperationQueue 和 GCD 的区别，以及各自的优势
+
+* 线程安全的处理手段有哪些？
+>可以通过使用如下线程锁来解决
+    * OSSpinLock
+    * os_unfair_lock
+    * pthread_mutex
+    * dispatch_semaphore
+    * dispatch_queue(DISPATCH_QUEUE_SERIAL)
+    * NSLock
+    * NSRecursiveLock
+    * NSCondition
+    * NSConditionLock
+    * @synchronized
+文件读写的可以使用如下两种方案:
+    * pthread_rwlock：读写锁
+    * dispatch_barrier_async：异步栅栏调用
+
+* OC你了解的锁有哪些？在你回答基础上进行二次提问；
+追问一：自旋和互斥对比？
+追问二：使用以上锁需要注意哪些？
+追问三：用C/OC/C++，任选其一，实现自旋或互斥？口述即可！
