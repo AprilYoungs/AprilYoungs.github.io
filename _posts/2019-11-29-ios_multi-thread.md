@@ -13,24 +13,25 @@ categories: ios
 
 ### GCD
 #### GCD中有2个用来执行任务的函数
-    * 用同步的方式执行任务
-    dispatch_sync(dispatch_queue_t queue, dispatch_block_t block);
-    queue：队列
-    block：任务
-    * 用异步的方式执行任务
-    dispatch_async(dispatch_queue_t queue, dispatch_block_t block);
+
+* 用同步的方式执行任务
+> dispatch_sync(dispatch_queue_t queue, dispatch_block_t block);
+<br>queue：队列
+<br>block：任务
+* 用异步的方式执行任务
+> dispatch_async(dispatch_queue_t queue, dispatch_block_t block);
 
 [GCD源码](https://github.com/apple/swift-corelibs-libdispatch)
 
 #### GCD的队列
 * 并发队列（Concurrent Dispatch Queue）
-> 可以让多个任务并发（同时）执行（自动开启多个线程同时执行任务）
+> 可以让多个任务并发（同时）执行（自动开启多个线程同时执行任务）<br>
 并发功能只有在异步（dispatch_async）函数下才有效
 
 * 串行队列（Serial Dispatch Queue）
 > 让任务一个接着一个地执行（一个任务执行完毕后，再执行下一个任务）
 
-队列不等同于线程，队列用来存储待执行的任务，串行只能一个一个按顺序取，并行可以抓取
+队列不等同于线程，队列用来存储待执行的任务，串行只能一个一个按顺序取，并行可以在前一个任务没有执行完的前提下同时执行下一个任务
 
 #### 容易混淆的术语
 有4个术语比较容易混淆：同步、异步、并发、串行
@@ -187,7 +188,8 @@ os_unfair_lock_unlock(&lock);
 
 #### pthread_mutex
 * mutex叫做”互斥锁”，等待锁的线程会处于休眠状态
-* 需要导入头文件#import <pthread.h>
+* 需要导入头文件`#import <pthread.h>`
+
 ```cpp
     // 初始化锁的属性
     pthread_mutexattr_t attr;
@@ -212,6 +214,7 @@ os_unfair_lock_unlock(&lock);
 ```cpp
 - (void)otherTest1
 {
+    // 加锁
     pthread_mutex_lock(&_mutex);
     NSLog(@"%s", __func__);
     static int count = 0;
@@ -220,6 +223,7 @@ os_unfair_lock_unlock(&lock);
         count++;
         [self otherTest1];
     }
+    // 解锁
     pthread_mutex_unlock(&_mutex);
 }
 ```
@@ -236,7 +240,8 @@ pthread_mutex_init(&mutex, &attr);
 ```
 
 **条件锁**：某件事发生需要满足一个条件之后才能继续执行，可以使用条件锁
-> 比如卖东西和生产东西，当东西售罄之后，需要等待生产好商品才能继续销售商品。
+<br>比如卖东西和生产东西，当东西售罄之后，需要等待生产好商品才能继续销售商品。
+
 ```cpp
 // 初始化条件， NULL代表默认属性
 pthread_cond_init(&_cond, NULL);
@@ -258,23 +263,23 @@ pthread_cond_destroy(&_cond);
 可以在即将加锁的代码中打断点，查看加锁不成功的汇编来验证
 **OSSpinLock**
 <div class="center">
-<image src="/resource/Threads/osspinlock1.png" style="width: 500px;"/>
+<image src="/resource/Threads/osspinlock1.png" style="width: 550px;"/>
 </div>
 
 <div class="center">
-<image src="/resource/Threads/osspinlock2.png" style="width: 500px;"/>
+<image src="/resource/Threads/osspinlock2.png" style="width: 600px;"/>
 </div>
 
 <div class="center">
-<image src="/resource/Threads/osspinlock3.png" style="width: 500px;"/>
+<image src="/resource/Threads/osspinlock3.png" style="width: 600px;"/>
 </div>
 
 <div class="center">
-<image src="/resource/Threads/osspinlock4.png" style="width: 500px;"/>
+<image src="/resource/Threads/osspinlock4.png" style="width: 600px;"/>
 </div>
 
 <div class="center">
-<image src="/resource/Threads/osspinlock5.png" style="width: 500px;"/>
+<image src="/resource/Threads/osspinlock5.png" style="width: 600px;"/>
 </div>
 上面的代码进入while循环
 
@@ -283,25 +288,25 @@ pthread_cond_destroy(&_cond);
 <image src="/resource/Threads/unfairlock1.png" style="width: 500px;"/>
 </div>
 <div class="center">
-<image src="/resource/Threads/unfairlock2.png" style="width: 500px;"/>
+<image src="/resource/Threads/unfairlock2.png" style="width: 600px;"/>
 </div>
 <div class="center">
-<image src="/resource/Threads/unfairlock3.png" style="width: 500px;"/>
+<image src="/resource/Threads/unfairlock3.png" style="width: 600px;"/>
 </div>
 <div class="center">
-<image src="/resource/Threads/unfairlock4.png" style="width: 500px;"/>
+<image src="/resource/Threads/unfairlock4.png" style="width: 600px;"/>
 </div>
 <div class="center">
-<image src="/resource/Threads/unfairlock5.png" style="width: 500px;"/>
+<image src="/resource/Threads/unfairlock5.png" style="width: 600px;"/>
 </div>
 <div class="center">
-<image src="/resource/Threads/unfairlock6.png" style="width: 500px;"/>
+<image src="/resource/Threads/unfairlock6.png" style="width: 600px;"/>
 </div>
 <div class="center">
-<image src="/resource/Threads/unfairlock7.png" style="width: 500px;"/>
+<image src="/resource/Threads/unfairlock7.png" style="width: 600px;"/>
 </div>
 <div class="center">
-<image src="/resource/Threads/unfairlock8.png" style="width: 500px;"/>
+<image src="/resource/Threads/unfairlock8.png" style="width: 600px;"/>
 </div>
 
 最后调用`callsys`进入睡眠等待状态。
@@ -413,7 +418,7 @@ dispatch_semaphore_signal(singleSemaphore);
 ```
 
 #### @synchronized
-`@synchronized`是对`os_unfair_recursive_lock`递归锁的封装(旧的版本是对`mutex`递归锁的封装）
+`@synchronized`是对`os_unfair_recursive_lock`递归锁的封装(旧的版本是对`mutex`递归锁的封装）<br>
 源码查看：objc4中的`objc-sync.mm`文件
 `@synchronized(obj)`内部会生成obj对应的递归锁，然后进行加锁、解锁操作
 
@@ -540,6 +545,9 @@ class recursive_mutex_tt : nocopy_t {
 解锁的时候`objc_sync_exit`根据原来传进的obj地址查找对应的锁，并移除哈希表中的键值对，再用这个锁来解锁
 
 #### Atomic
+`atomic`用于保证属性`setter、getter`的原子性操作，相当于在`getter`和`setter`内部加了线程同步的锁<br>
+可以参考源码`objc4`的`objc-accessors.mm`
+它并不能保证使用属性的过程是线程安全的
 ```cpp
 id objc_getProperty(id self, SEL _cmd, ptrdiff_t offset, BOOL atomic) {
     if (offset == 0) {
@@ -596,6 +604,83 @@ static inline void reallySetProperty(id self, SEL _cmd, id newValue, ptrdiff_t o
     objc_release(oldValue);
 }
 ```
+
+#### iOS线程同步方案性能比较
+<div class="center">
+<image src="/resource/Threads/performance.png" style="width: 450px;"/>
+</div>
+考虑到(1,2)有iOS版本兼容的问题，可以考虑优先使用（3，4）
+
+#### 自旋锁、互斥锁比较
+* 什么情况使用自旋锁比较划算？
+    * 预计线程等待锁的时间很短
+    * 加锁的代码（临界区）经常被调用，但竞争情况很少发生
+    * CPU资源不紧张
+    * 多核处理器
+
+* 什么情况使用互斥锁比较划算？
+    * 预计线程等待锁的时间较长
+    * 单核处理器
+    * 临界区有IO操作
+    * 临界区代码复杂或者循环量大
+    * 临界区竞争非常激烈
+
+### iOS中的读写安全方案
+通常涉及到文件IO操作时，为了保证数据安全和效率，一般是"多读单写"，也就是:
+* 同一时间，只能有1个线程进行写的操作
+* 同一时间，允许有多个线程进行读的操作
+* 同一时间，不允许既有写的操作，又有读的操作
+
+iOS的实现方案有
+* `pthread_rwlock`：读写锁
+* `dispatch_barrier_async`：异步栅栏调用
+
+#### pthread_rwlock
+
+等待锁的线程会进入休眠
+
+```cpp
+// 初始化锁
+pthread_rwlock_t lock;
+pthread_rwlock_init(&lock, NULL);
+
+// 读-加锁
+pthread_rwlock_rdlock(&lock);
+// 读-尝试加锁
+pthread_rwlock_tryrdlock(&lock);
+
+// 写-加锁
+pthread_rwlock_wrlock(&lock);
+// 写-尝试加锁
+pthread_rwlock_trywrlock(&lock);
+
+// 解锁
+pthread_rwlock_unlock(&lock);
+
+// 销毁
+pthread_rwlock_destroy(&lock);
+```
+
+#### dispatch_barrier_async
+这个函数传入的并发队列必须是自己通过`dispatch_queue_create`创建的
+如果传入的是一个串行或是一个全局的并发队列，那这个函数便等同于`dispatch_async`函数的效果
+> Calls to this function always return immediately after the block has been submitted and never wait for the block to be invoked. When the barrier block reaches the front of a private concurrent queue, it is not executed immediately. Instead, the queue waits until its currently executing blocks finish executing. At that point, the barrier block executes by itself. Any blocks submitted after the barrier block are not executed until the barrier block completes.
+The queue you specify should be a concurrent queue that you create yourself using the dispatch_queue_create function. If the queue you pass to this function is a serial queue or one of the global concurrent queues, this function behaves like the dispatch_async function.
+
+```objectivec
+// 初始化队列
+dispatch_queue_t queue = dispatch_queue_create("queue",DISPATCH_QUEUE_CONCURRENT);
+// 读
+dispatch_async(queue, ^{
+    
+});
+// 写
+dispatch_barrier_async(queue, ^{
+    
+});
+```
+
+
 
 
 ## GNUstep
