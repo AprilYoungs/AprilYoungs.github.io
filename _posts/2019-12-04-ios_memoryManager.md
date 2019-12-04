@@ -6,6 +6,8 @@ categories: ios
 ---
 
 ### NSTimer & CADisplayLink
+不管是`NSTimer`还是`CADisplayLink`都依赖于`RunLoop`，如果`RunLoop`的任务过于繁重，可能会导致`NSTimer`不准时
+
 这个两个定时器使用时需要注意循环引用的问题
 ```objectivec
 
@@ -151,3 +153,63 @@ dealloc的时候如果不释放timer会出现如下的错误
 [[AYProxy proxyWithTarget:self] isKindOfClass:[ViewController class]];
 ```
 上面的代码返回是`true`,因为`AYProxy`所有方法都会进入消息转发，跟直接调用`ViewController`的方法的结果是一样的。
+
+#### GCD timer
+GCD 的 timer 不需要添加到 `runloop`, 相对来说会比较准，而且也不用担心界面活动时timer会停止。
+
+```objectivec
+{
+/// 让timer在这个队列中处理事件，使用主队列，timer里边的事件会在主线程处理
+    dispatch_queue_t queue = dispatch_get_main_queue();
+    // 开始时间，当前时间往后延迟的秒数
+    NSTimeInterval start = 2;
+    // 定时器的时间间隔
+    NSTimeInterval interval = 0.5;
+    
+    // 创建一个source，存储timer信息
+    dispatch_source_t timer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, queue);
+    // 设置timer参数，最后一个参数是能够容忍的误差，这里设定为时间间隔的十分之一
+    dispatch_source_set_timer(timer, DISPATCH_TIME_NOW+start, interval * NSEC_PER_SEC, interval*0.1);
+    
+    // 设置定时到回调
+    dispatch_source_set_event_handler(timer, ^{
+        NSLog(@"%s,%@", __func__, [NSThread currentThread]);
+    });
+
+    // 也可以使用函数作为回调, 需要传入c语言的函数指针
+    dispatch_source_set_event_handler_f(timer, timerEvent);
+    
+    # warning event_handler 只能有一个
+
+    // 开启定时器
+    dispatch_resume(timer);
+    
+    // 需要持有timer，不然创建之后被释放会失效
+    self.timer = timer;
+    
+    // 关闭定时器，关闭之后将不能重新开启
+    dispatch_cancel(self.timer);
+}
+
+void timerEvent()
+{
+   NSLog(@"%s,%@", __func__, [NSThread currentThread]);
+}
+```
+
+### iOS程序的内存布局
+
+<div class="center">
+<image src="/resource/memoryManager/memoryLayout.png" style="width: 200px;"/>
+</div>
+
+程序启动之后，会把程序的`mach-o`文件加在到内存中, 从保留段到__DATA段是`mach-o`加载出来的。下面那些是程序运行起来后产生的内存。
+
+* 保留段：用来存放空指针的，代码中的安全区，另外还存有mach-o文件的信息
+* 代码段：编译之后的代码
+* 数据段
+    * 字符串常量：比如NSString *str = @"123"
+    * 已初始化数据：已初始化的全局变量、静态变量等
+    * 未初始化数据：未初始化的全局变量、静态变量等
+* 栈：函数调用开销，比如局部变量。分配的内存空间地址越来越小
+* 堆：通过alloc、malloc、calloc等动态分配的空间，分配的内存空间地址越来越大
