@@ -342,14 +342,30 @@ dispatch_async(queue, ^{
 `performSelector:withObject:afterDelay:`不会执行，因为它使用添加到`runloop`的`timer`来执行，子线程的`runloop`没有运行起来，可以通过启动`runloop`来让`performSelector:withObject:afterDelay:`正常执行。
 
 * 你理解的多线程？
-> iOS
+> 一个线程同一时间可以处理一个任务，而多线程就可以同一时间处理多个任务，多核CPU可以实现真正的多线程，也就是并行。而单核CPU只能实现并发，单核CPU的多线程是通过轮流执行多个线程来模拟多线程的效果。
+
 * iOS的多线程方案有哪几种？你更倾向于哪一种？
+<div class="center">
+<image src="/resource/Threads/threads_type.png" style="width: 700px;"/>
+</div>
+一般使用GCD
 
 * 你在项目中用过 GCD 吗？
+> 经常用到，通常处理耗时操作的时候会使用GCD开启异步线程开并发处理任务，例如网络请求，图片处理，处理完之后如果需要更新界面会切换会主线程。
+gcd的async移除操作会持有对象，所以要注意避免循环引用。sync有可能会有产生死锁，这个也要注意一下。
+GCD还可以用来解决线程安全问题，可以用串行队列或`semaphore`来保证一次只有一个线程可以访问同一块数据
+还可以使用**dispatch_barrier_async：异步栅栏调用**来保证文件的读写安全
 
 * GCD 的队列类型
+<div class="center">
+<image src="/resource/Threads/thread_relation.png" style="width: 600px;"/>
+</div>
+
+> GCD的队列分串行队列，并发队列，还有主队列，主队列是一个特殊的串行队列。<br>
+放到串行队列的任务会按顺序执行一个挨着一个执行，只有执行完上一个任务才会执行下一个任务；如果async异步执行，并发队列可以同时执行多个任务，如果使用同步sync执行，即使并发队列还是不会并发执行任务
 
 * 说一下 OperationQueue 和 GCD 的区别，以及各自的优势
+> `OperationQueue` 是对 GCD 的OC封装，更加面向对象，`OperationQueue`能做事直接使用GCD都可以做。`OperationQueue`比GCD多了一些更简单实用的功能。
 
 * 线程安全的处理手段有哪些？
 >可以通过使用如下线程锁来解决
@@ -367,7 +383,14 @@ dispatch_async(queue, ^{
     * pthread_rwlock：读写锁
     * dispatch_barrier_async：异步栅栏调用
 
-* OC你了解的锁有哪些？在你回答基础上进行二次提问；
+* OC你了解的锁有哪些？⬆️在你回答基础上进行二次提问；
 追问一：自旋和互斥对比？
+> 从实现原理上来讲，Mutex属于sleep-waiting类型的锁，当第二个线程想加锁时发现已经被加锁了，这个线程就会进入睡眠。
+Spin-lock是busy-waiting类型的锁，当第二个线程想加锁时发现已经被加锁了，这个线程就会进入while循环，不停的查看是否已经解锁了。
+
 追问二：使用以上锁需要注意哪些？
+> 自旋锁等待中会一直占用CPU资源，可能会出现优先级反转的问题，如果等待锁的线程优先级较高，它会一直占用着CPU资源，优先级低的线程就无法释放锁。 CPU比较紧张的时候不建议用自旋锁。避免使用进入死锁状态，当需要重复加锁的时候，使用递归锁。
+
 追问三：用C/OC/C++，任选其一，实现自旋或互斥？口述即可！
+> 自旋锁使用`OSSpinLock`, 互斥锁使用`pthread_mutex`.
+代码实现自旋锁, 定义一个 `Bool` 类型的变量`false`代表未加锁，`true`代表已加锁，我们把它叫做`lock`。加锁的时候，如果是`true`就进入`while`循环，直到`lock`变成`false`，如果是`false`就直接把`lock`设置为`true`。解锁的时候，就把`lock`设置为`false`
