@@ -406,7 +406,7 @@ OC中方法调用，其实都是转换成`objc_msgSend`函数的调用
 ```
 需要手动添加方法实现，不然会出现`unrecognized selector sent to instance`的错误
 
-#### 消息转发
+#### 3. 消息转发
 <div class="center">
 <image src="/resource/runtime/msg_forward.png" style="width: 600px;"/>
 </div>
