@@ -394,3 +394,69 @@ Spin-lock是busy-waiting类型的锁，当第二个线程想加锁时发现已�
 追问三：用C/OC/C++，任选其一，实现自旋或互斥？口述即可！
 > 自旋锁使用`OSSpinLock`, 互斥锁使用`pthread_mutex`.
 代码实现自旋锁, 定义一个 `Bool` 类型的变量`false`代表未加锁，`true`代表已加锁，我们把它叫做`lock`。加锁的时候，如果是`true`就进入`while`循环，直到`lock`变成`false`，如果是`false`就直接把`lock`设置为`true`。解锁的时候，就把`lock`设置为`false`
+
+
+### 内存管理
+* 运行下面两段代码，会发生上面事?
+```objectivec
+@interface ViewController ()
+@property (strong, nonatomic) NSString *name;
+@end
+@implementation ViewController
+- (void)viewDidLoad {
+    [super viewDidLoad];
+
+    dispatch_queue_t queue = dispatch_get_global_queue(0, 0);
+
+    for (int i = 0; i < 1000; i++) {
+        dispatch_async(queue, ^{
+            self.name = [NSString stringWithFormat:@"abcdefghijk"];
+        });
+    }
+}
+@end
+```
+
+```objectivec
+@interface ViewController ()
+@property (strong, nonatomic) NSString *name;
+@end
+@implementation ViewController
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    
+    dispatch_queue_t queue = dispatch_get_global_queue(0, 0);
+
+    for (int i = 0; i < 1000; i++) {
+        dispatch_async(queue, ^{
+            self.name = [NSString stringWithFormat:@"abc"];
+        });
+    }
+}
+```
+> 前者会崩溃，后者可以正常运行<br>因为`[NSString stringWithFormat:@"abcdefghijk"]`对象类型的字符串,在`setName`的方法中，底层调用的是这样的方法
+```objectivec
+- (void)setName:(NSString *)name
+{
+    if (_name != name) {
+        [_name release];
+        _name = [name retain];
+    }
+}
+```
+> 上面是并发调用`setName`方法，有可能在某个时间段`release`调用的次数比 `retain` 多，这样会出现崩溃`EXC_BAD_ACCESS`,因为要`release`的对象已经被释放了。
+****
+> 后者虽然也是并发调用`setName`方法, 但是`[NSString stringWithFormat:@"abc"]`创建的字符串，其实是`tagged-pointer`类型的字符串，字符串的内容直接存在栈上的指针，在`setName` 方法中，不需要调用 `release` 和 `retain`。
+
+> 另外代码一，可以通过把属性设置为`atomic`类型来保证`set`方法的线程安全，或者调用`set`时手动加锁来保证线程安全
+```objectivec
+dispatch_semaphore_t semaphore = dispatch_semaphore_create(1);
+for (int i = 0; i < 1000; i++)
+{
+    dispatch_async(queue, ^{
+        dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
+        self.name = [NSString stringWithFormat:@"asdfghjklzxcvbnm"];
+        dispatch_semaphore_signal(semaphore);
+    });
+}
+```

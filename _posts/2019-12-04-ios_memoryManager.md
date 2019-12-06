@@ -213,3 +213,123 @@ void timerEvent()
     * 未初始化数据：未初始化的全局变量、静态变量等
 * 栈：函数调用开销，比如局部变量。分配的内存空间地址越来越小
 * 堆：通过alloc、malloc、calloc等动态分配的空间，分配的内存空间地址越来越大
+
+代码验证
+```objectivec
+int b1;
+float b2;
+
+int a1 = 0;
+float a2 = 120;
+
+int main(int argc, const char * argv[]) {
+    @autoreleasepool {
+        
+        NSString *str1 = @"1123";
+        NSString *str2 = @"afgfffdfffffffff";
+        
+        int c1 = 23;
+        int c2 = 234;
+        
+        NSObject *object1 = [[NSObject alloc] init];
+        NSObject *object2 = [[NSObject alloc] init];
+        
+        NSLog(@"字符串常量");
+        NSLog(@"str1->%p", str1);
+        NSLog(@"str2->%p", str2);
+        
+        NSLog(@"已初始化全局数据");
+        NSLog(@"a1->%p", &a1);
+        NSLog(@"a2->%p", &a2);
+        
+        NSLog(@"未初始化全局数据");
+        NSLog(@"b1->%p", &b1);
+        NSLog(@"b2->%p", &b2);
+        
+        
+        NSLog(@"堆");
+        NSLog(@"object1->%p", object1);
+        NSLog(@"object2->%p", object2);
+        
+        NSLog(@"栈");
+        NSLog(@"c1->%p", &c1);
+        NSLog(@"c2->%p", &c2);
+        
+        
+        
+    }
+    return 0;
+}
+/**
+字符串常量
+str1->0x100001018
+str2->0x100001038
+已初始化全局数据
+a1->0x100002044
+a2->0x100002040
+未初始化全局数据
+b1->0x100002048
+b2->0x10000204c
+堆
+object1->0x1006020a0
+object2->0x100602ed0
+栈
+c1->0x7ffeefbff49c
+c2->0x7ffeefbff498
+ */
+```
+
+### Tagged Pointer
+
+从64bit开始，iOS引入了`Tagged Pointer`技术，用于优化`NSNumber`、`NSDate`、`NSString`等小对象的存储
+
+在没有使用`Tagged Pointer`之前， `NSNumber`等对象需要动态分配内存、维护引用计数等，`NSNumber`指针存储的是堆中`NSNumber`对象的地址值
+
+使用`Tagged Pointer`之后，`NSNumber`指针里面存储的数据变成了：Tag + Data，也就是将数据直接存储在了指针中
+
+当指针不够存储数据时，才会使用动态分配内存的方式来存储数据
+
+```objectivec
+NSNumber *num1 = @10;
+NSNumber *num2 = @11;
+NSNumber *num3 = @12;
+NSNumber *num4 = @184523374875933234;
+NSLog(@"num1-(%@)->%p", [num1 class], num1);
+NSLog(@"num2-(%@)->%p", [num2 class], num2);
+NSLog(@"num3-(%@)->%p", [num3 class], num3);
+NSLog(@"num4-(%@)->%p", [num4 class], num4);
+/**
+ num1, num2, num3 是tagged Pointer
+ num4, 是正常的对象
+num1-(__NSCFNumber)->0x5236f0387428a1e5
+num2-(__NSCFNumber)->0x5236f0387428a0e5
+num3-(__NSCFNumber)->0x5236f0387428a7e5
+num4-(__NSCFNumber)->0x10186c570
+*/
+
+NSString *str1 = @"123asdfghjkl";
+NSString *str2 = [NSString stringWithFormat:@"abc"];
+NSString *str3 = [NSStrinstringWithFormat:@"abcasdfghjkllfgzcv"];
+
+NSLog(@"str1->(%@)->%p", [str1 class], str1);
+NSLog(@"str2->(%@)->%p", [str2 class], str2);
+NSLog(@"str3->(%@)->%p", [str3 class], str3);
+
+/**
+ 不同方式创建的NSString
+str1->(__NSCFConstantString)->0x1000020d8
+
+// NSString 的 tagged pointer 类型
+str2->(NSTaggedPointerString)->0x1d9a38f64f7be7d9
+
+str3->(__NSCFString)->0x1020004a0
+ */
+```
+
+`objc_msgSend`能识别`Tagged Pointer`，比如`NSNumber`的`intValue`方法，直接从指针提取数据，节省了以前的调用开销
+
+如何判断一个指针是否为Tagged Pointer？
+iOS平台，最高有效位是1（第64bit）
+Mac平台，最低有效位是1
+
+
