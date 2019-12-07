@@ -525,3 +525,137 @@ weak_clear_no_lock(weak_table_t *weak_table, id referent_id)
 <image src="/resource/memoryManager/copy2.png" style="width: 500px;"/>
 </div>
 
+### autorelease原理
+```objectivec
+ @autoreleasepool {
+    NSObject *obj = [[[NSObject alloc] init] autorelease];
+}
+```
+在自动释放池里边的对象，只要调用了`autorelease`在超出作用域的时候都会自动释放。
+
+`@autoreleasepool`到底做了什么？
+有两种方式可以窥探
+* 创建一个`cmdline`项目, 并在中间打一个断点
+<div class="center">
+<image src="/resource/memoryManager/autoreleasepool1.png" style="width: 500px;"/>
+</div>
+
+查看汇编代码
+<div class="center">
+<image src="/resource/memoryManager/autoreleasepool2.png" style="width: 500px;"/>
+</div>
+
+可以看到打印 `@"hello world"`的前后分别调用了 `objc_autoreleasePoolPush` 和 `objc_autoreleasePoolPop`
+<div class="center">
+<image src="/resource/memoryManager/autoreleasepool3.png" style="width: 500px;"/>
+</div>
+
+* 第二种方法, 把OC代码编译成 cpp 代码
+在`terminal` 中运行如下命令，把上面的代码编译出一个`main.cpp`文件
+`$ xcrun -sdk iphoneos clang -arch arm64 -rewrite-objc main.m`
+
+截取关键代码如下
+```cpp
+struct __AtAutoreleasePool {
+  __AtAutoreleasePool() {atautoreleasepoolobj = objc_autoreleasePoolPush();}
+  ~__AtAutoreleasePool() {objc_autoreleasePoolPop(atautoreleasepoolobj);}
+  void * atautoreleasepoolobj;
+};
+
+int main(int argc, const char * argv[]) {
+    /* @autoreleasepool */ { __AtAutoreleasePool __autoreleasepool; 
+
+        NSLog((NSString *)&__NSConstantStringImpl__var_folders_h7_s2yhr_2526d_0tv661_8qbdr0000gn_T_main_1940b1_mi_0);
+    }
+    return 0;
+}
+```
+在声明`@autoreleasepool`处实际上定义了一个 `__AtAutoreleasePool`结构体，创建的时候会调用cpp结构体的构建函数，内部调用了`objc_autoreleasePoolPush`并返回一个指针`void * atautoreleasepoolobj`，在即将出作用域的时候，这个结构体会调用析构函数
+```cpp
+ ~__AtAutoreleasePool() {objc_autoreleasePoolPop(atautoreleasepoolobj);}
+```
+内部调用了`objc_autoreleasePoolPop(atautoreleasepoolobj)`,跟前面查看汇编看到的结果是一样的。
+
+---
+
+接下来查看[objc4 源码](https://opensource.apple.com/tarballs/objc4/)`NSObject.mm`，研究一下这两个函数都干了什么。
+
+```cpp
+void *
+objc_autoreleasePoolPush(void)
+{
+    return AutoreleasePoolPage::push();
+}
+
+void
+objc_autoreleasePoolPop(void *ctxt)
+{
+    AutoreleasePoolPage::pop(ctxt);
+}
+
+class AutoreleasePoolPage 
+{
+    magic_t const magic;
+    id *next;
+    pthread_t const thread;
+    AutoreleasePoolPage * const parent;
+    AutoreleasePoolPage *child;
+    uint32_t const depth;
+    uint32_t hiwat;
+}
+```
+源码过于复杂在这里就不粘贴太多了，有兴趣的可以去读源码，下面说一下结论
+
+* 每个AutoreleasePoolPage对象占用4096字节内存，除了用来存放它内部的成员变量，剩下的空间用来存放autorelease对象的地址
+* 所有的AutoreleasePoolPage对象通过双向链表的形式连接在一起
+
+<div class="center">
+<image src="/resource/memoryManager/autoreleasepool4.png" style="width: 600px;"/>
+</div>
+
+* 调用`push`方法会将一个`POOL_BOUNDARY`入栈，并且返回其存放的内存地址
+
+* 调用`pop`方法时传入一个`POOL_BOUNDARY`的内存地址，会从最后一个入栈的对象开始发送`release`消息，直到遇到这个`POOL_BOUNDARY`
+
+* `id *next`指向了下一个能存放`autorelease`对象地址的区域  
+
+另外补充一个tip:
+```cpp
+// 导出 私有方法，打印 autoreleasePool 状态
+extern void
+_objc_autoreleasePoolPrint(void);
+```
+> 可以打印出当前自动释放池中有多少待释放的对象，使用这个方式的时候需要把编译模式改成MRC,并把调用autorelease方法
+```cpp
+NSObject *obj = [[[NSObject alloc] init] autorelease];
+```
+
+#### Runloop中的Autorelease
+
+iOS在主线程的`Runloop`中注册了2个Observer
+* 第1个Observer监听了`kCFRunLoopEntry`事件，会调用`objc_autoreleasePoolPush()`
+* 第2个Observer
+    * 监听了`kCFRunLoopBeforeWaiting`事件，会调用`objc_autoreleasePoolPop()`、`objc_autoreleasePoolPush()`
+    * 监听了`kCFRunLoopBeforeExit`事件，会调用`objc_autoreleasePoolPop()`
+
+打印 [NSRunLoop mainRunLoop], 可以找到这样这两个observer
+```cpp
+ typedef CF_OPTIONS(CFOptionFlags, CFRunLoopActivity) {
+     kCFRunLoopEntry = (1UL << 0), 1
+     kCFRunLoopBeforeTimers = (1UL << 1), 2
+     kCFRunLoopBeforeSources = (1UL << 2), 4
+     kCFRunLoopBeforeWaiting = (1UL << 5), 32
+     kCFRunLoopAfterWaiting = (1UL << 6),  64
+     kCFRunLoopExit = (1UL << 7), 128
+     kCFRunLoopAllActivities = 0x0FFFFFFFU
+ };
+
+ 
+ activities = 0x1 -> kCFRunLoopEntry
+ "<CFRunLoopObserver 0x600003134500 [0x7fff80615350]>{valid = Yes, activities = 0x1, repeats = Yes, order = -2147483647, callout = _wrapRunLoopWithAutoreleasePoolHandler (0x7fff47848c8c), context = <CFArray 0x600000e26190 [0x7fff80615350]>{type = mutable-small, count = 1, values = (\n\t0 : <0x7fd973802048>\n)}}",
+ 
+ activities = 0xa0 -> kCFRunLoopBeforeWaiting | kCFRunLoopExit
+ "<CFRunLoopObserver 0x6000031345a0 [0x7fff80615350]>{valid = Yes, activities = 0xa0, repeats = Yes, order = 2147483647, callout = _wrapRunLoopWithAutoreleasePoolHandler (0x7fff47848c8c), context = <CFArray 0x600000e26190 [0x7fff80615350]>{type = mutable-small, count = 1, values = (\n\t0 : <0x7fd973802048>\n)}}"
+```
+
+所以iOS中的OC对象，如果放到了自动释放池，会在每个runloop开始休眠之前，或者runloop退出的时候释放。
