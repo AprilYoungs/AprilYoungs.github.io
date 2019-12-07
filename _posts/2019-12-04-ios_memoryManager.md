@@ -344,6 +344,142 @@ Mac平台，最低有效位是1
     * 当调用alloc、new、copy、mutableCopy方法返回了一个对象，在不需要这个对象时，要调用release或者autorelease来释放它
     * 想拥有某个对象，就让它的引用计数+1；不想再拥有某个对象，就让它的引用计数-1
 
+* 对象的引用计数会存在`NSObject`的`isa`指针中，
+<div class="center">
+<image src="/resource/runtime/isaunion.png" style="width: 500px;"/>
+</div>
+每个位都代表不同的意思，有一个位来表示是否有弱指针，还有19位用来存引用计数，不够存的时候会存附表
+
+#### OC 对象的释放过程（delloc）
+查看[objc4 源码](https://opensource.apple.com/tarballs/objc4/)
+* NSObject.mm 
+```objectivec
+// Replaced by NSZombies
+- (void)dealloc {
+    _objc_rootDealloc(self);
+}
+
+void
+_objc_rootDealloc(id obj)
+{
+    assert(obj);
+
+    obj->rootDealloc();
+}
+
+inline void
+objc_object::rootDealloc()
+{
+    // 如果是TaggedPointer，没有引用，直接返回
+    if (isTaggedPointer()) return;  // fixme necessary?
+
+    if (fastpath(isa.nonpointer  &&  
+                 !isa.weakly_referenced  &&  
+                 !isa.has_assoc  &&  
+                 !isa.has_cxx_dtor  &&  
+                 !isa.has_sidetable_rc))
+    {
+        assert(!sidetable_present());
+        free(this);
+    } 
+    else {
+        object_dispose((id)this);
+    }
+}
+
+/***********************************************************************
+* object_dispose
+* fixme
+* Locking: none
+**********************************************************************/
+id 
+object_dispose(id obj)
+{
+    if (!obj) return nil;
+    
+    objc_destructInstance(obj);    
+    free(obj);
+
+    return nil;
+}
+```
+关键逻辑在这一段
+```objectivec
+/***********************************************************************
+* objc_destructInstance
+* Destroys an instance without freeing memory. 
+* Calls C++ destructors.
+* Calls ARC ivar cleanup.
+* Removes associative references.
+* Returns `obj`. Does nothing if `obj` is nil.
+**********************************************************************/
+void *objc_destructInstance(id obj) 
+{
+    if (obj) {
+        // Read all of the flags at once for performance.
+        bool cxx = obj->hasCxxDtor();
+        bool assoc = obj->hasAssociatedObjects();
+
+        // This order is important.
+        // 调用 C++ 析构函数
+        if (cxx) object_cxxDestruct(obj);
+        // 移除关联对象
+        if (assoc) _object_remove_assocations(obj);
+        // 移除ivar，还有弱引用
+        obj->clearDeallocating();
+    }
+
+    return obj;
+}
+
+inline void 
+objc_object::clearDeallocating()
+{
+    if (slowpath(!isa.nonpointer)) {
+        // Slow path for raw pointer isa.
+        sidetable_clearDeallocating();
+    }
+    else if (slowpath(isa.weakly_referenced  ||  isa.has_sidetable_rc)) {
+        // Slow path for non-pointer isa with weak refs and/or side table data.
+        clearDeallocating_slow();
+    }
+
+    assert(!sidetable_present());
+}
+
+
+// 清除附表，并开始清理弱引用
+void 
+objc_object::sidetable_clearDeallocating()
+{
+    SideTable& table = SideTables()[this];
+
+    // clear any weak table items
+    // clear extra retain count and deallocating bit
+    // (fixme warn or abort if extra retain count == 0 ?)
+    table.lock();
+    RefcountMap::iterator it = table.refcnts.find(this);
+    if (it != table.refcnts.end()) {
+        if (it->second & SIDE_TABLE_WEAKLY_REFERENCED) {
+            weak_clear_no_lock(&table.weak_table, (id)this);
+        }
+        table.refcnts.erase(it);
+    }
+    table.unlock();
+}
+
+/** 
+ * Called by dealloc; nils out all weak pointers that point to the 
+ * provided object so that they can no longer be used.
+ * 
+ * @param weak_table 
+ * @param referent The object being deallocated. 
+ */
+void 
+weak_clear_no_lock(weak_table_t *weak_table, id referent_id) 
+// 把所有weak引用置为nil
+```
+
 #### copy的使用
 <div class="center">
 <image src="/resource/memoryManager/copy.png" style="width: 500px;"/>
@@ -388,3 +524,4 @@ Mac平台，最低有效位是1
 <div class="center">
 <image src="/resource/memoryManager/copy2.png" style="width: 500px;"/>
 </div>
+
