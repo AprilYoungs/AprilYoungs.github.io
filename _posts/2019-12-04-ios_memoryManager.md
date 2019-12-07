@@ -333,3 +333,58 @@ iOS平台，最高有效位是1（第64bit）
 Mac平台，最低有效位是1
 
 
+### OC对象的内存管理
+* 在iOS中，使用引用计数来管理OC对象的内存
+
+* 一个新创建的OC对象引用计数默认是1，当引用计数减为0，OC对象就会销毁，释放其占用的内存空间
+
+* 调用retain会让OC对象的引用计数+1，调用release会让OC对象的引用计数-1
+
+* 内存管理的经验总结
+    * 当调用alloc、new、copy、mutableCopy方法返回了一个对象，在不需要这个对象时，要调用release或者autorelease来释放它
+    * 想拥有某个对象，就让它的引用计数+1；不想再拥有某个对象，就让它的引用计数-1
+
+#### copy的使用
+<div class="center">
+<image src="/resource/memoryManager/copy.png" style="width: 500px;"/>
+</div>
+
+自定义类使用`copy`属性需要注意一下，比如
+```objectivec
+@interface AYPerson : NSObject<NSCopying>
+@property(nonatomic, copy) NSMutableString *name;
+@property(nonatomic, copy) NSMutableArray *list;
+@end
+```
+这种定义方式会导致`name`和`list`的实际类型为`NSString`,`NSArray`,因为它们的set方法会这样实现
+```objectivec
+-(void)setName:(NSMutableString *)name
+{
+    if (_name != name)
+    {
+        [_name release];
+        _name = [name copy];
+    }
+}
+- (void)setList:(NSMutableArray *)list
+{
+    if (_list != list)
+    {
+        [_list release];
+        _list = [list copy];
+    }
+}
+```
+所以可变数据类型应该用strong修饰，正确的姿势是这样的
+```objectivec
+@interface AYPerson : NSObject<NSCopying>
+@property(nonatomic, strong) NSMutableString *name;
+@property(nonatomic, strong) NSMutableArray *list;
+@end
+```
+
+`NSString, NSArray, NSDictionary`不希望得到的数据被意外修改的时候，建议用`copy`修饰，可以保证数据是独享的
+比如`UILabel`的`text`就是这样声明的
+<div class="center">
+<image src="/resource/memoryManager/copy2.png" style="width: 500px;"/>
+</div>
