@@ -82,7 +82,7 @@ categories: ios
 }
 @end
 ```
-定义一个`AYProxy`，让它继承`NSProxy`,内部使用弱引用的`target`，并实现消息转发的方法，这样可以使用它的来接收在作为`timer`的`target`，使用的时候，调用如下方法
+定义一个`AYProxy`，让它继承`NSProxy`,内部使用弱引用的`target`，并实现消息转发的方法，这样可以使用它来作为`timer`的`target`，使用的时候，调用如下方法
 ```objectivec
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -329,8 +329,8 @@ str3->(__NSCFString)->0x1020004a0
 `objc_msgSend`能识别`Tagged Pointer`，比如`NSNumber`的`intValue`方法，直接从指针提取数据，节省了以前的调用开销
 
 如何判断一个指针是否为Tagged Pointer？
-iOS平台，最高有效位是1（第64bit）
-Mac平台，最低有效位是1
+* iOS平台，最高有效位是1（第64bit）
+* Mac平台，最低有效位是1
 
 
 ### OC对象的内存管理
@@ -346,13 +346,14 @@ Mac平台，最低有效位是1
 
 * 对象的引用计数会存在`NSObject`的`isa`指针中，
 <div class="center">
-<image src="/resource/runtime/isaunion.png" style="width: 500px;"/>
+<image src="/resource/runtime/isaunion.png" style="width: 400px;"/>
 </div>
 每个位都代表不同的意思，有一个位来表示是否有弱指针，还有19位用来存引用计数，不够存的时候会存附表
 
 #### OC 对象的释放过程（delloc）
 查看[objc4 源码](https://opensource.apple.com/tarballs/objc4/)
 * NSObject.mm 
+
 ```objectivec
 // Replaced by NSZombies
 - (void)dealloc {
@@ -482,7 +483,7 @@ weak_clear_no_lock(weak_table_t *weak_table, id referent_id)
 
 #### copy的使用
 <div class="center">
-<image src="/resource/memoryManager/copy.png" style="width: 500px;"/>
+<image src="/resource/memoryManager/copy.png" style="width: 600px;"/>
 </div>
 
 自定义类使用`copy`属性需要注意一下，比如
@@ -522,7 +523,7 @@ weak_clear_no_lock(weak_table_t *weak_table, id referent_id)
 `NSString, NSArray, NSDictionary`不希望得到的数据被意外修改的时候，建议用`copy`修饰，可以保证数据是独享的
 比如`UILabel`的`text`就是这样声明的
 <div class="center">
-<image src="/resource/memoryManager/copy2.png" style="width: 500px;"/>
+<image src="/resource/memoryManager/copy2.png" style="width: 600px;"/>
 </div>
 
 ### autorelease原理
@@ -551,7 +552,7 @@ weak_clear_no_lock(weak_table_t *weak_table, id referent_id)
 </div>
 
 * 第二种方法, 把OC代码编译成 cpp 代码
-在`terminal` 中运行如下命令，把上面的代码编译出一个`main.cpp`文件
+在`terminal` 中运行如下命令，把上面的代码编译出一个`main.cpp`文件<br>
 `$ xcrun -sdk iphoneos clang -arch arm64 -rewrite-objc main.m`
 
 截取关键代码如下
@@ -610,7 +611,7 @@ class AutoreleasePoolPage
 * 所有的AutoreleasePoolPage对象通过双向链表的形式连接在一起
 
 <div class="center">
-<image src="/resource/memoryManager/autoreleasepool4.png" style="width: 600px;"/>
+<image src="/resource/memoryManager/autoreleasepool4.png" style="width: 800px;"/>
 </div>
 
 * 调用`push`方法会将一个`POOL_BOUNDARY`入栈，并且返回其存放的内存地址

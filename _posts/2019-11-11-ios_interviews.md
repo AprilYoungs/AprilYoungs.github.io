@@ -488,7 +488,7 @@ for (int i = 0; i < 1000; i++)
 > weak指针指向对象，但并不持有对象，当对象被释放时，weak指针会被置为nil。它是这样实现的，当添加一个weak指针时，对象的isa值会记录这个对象有weak指针，并把对象的id作为key，把存有weak指针地址的索引作为值存在一张全局的表里边(weak_table)。当对象释放的时候（dealloc），会去查找全局weak_table对应的weak索引，把所有weak索引都置为nil。
 
 * autorelease对象在什么时机会被调用release
-> OS中的OC对象，如果放到了自动释放池，会在每个runloop开始休眠之前，或者runloop退出的时候释放。
+> iOS中的OC对象，如果放到了自动释放池，会在每个runloop开始休眠之前，或者runloop退出的时候释放。
 
 * 方法里有局部对象， 出了方法后会立即释放吗
 > 这要看ARC给这个变量自动添加的是release，还是autorelease，如果是release，调用release的时候引用计数也为0时，就立即释放，如果是autorelease出了方法不会立即释放，需要等到runloop即将进入睡眠，或退出的时候才会释放
