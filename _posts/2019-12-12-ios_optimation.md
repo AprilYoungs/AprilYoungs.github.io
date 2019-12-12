@@ -19,6 +19,19 @@ categories: ios
 4. app快速启动
 5. 应用包尽量小
 
+#### CPU & Memory的检测
+使用 instruments - > activity monitor 来检测
+<div class="center">
+<image src="/resource/optimation/optimation6.png" style="width: 600px;"/>
+</div>
+
+选择手机和app, 只能开启使用开发证书签名的app
+
+<div class="center">
+<image src="/resource/optimation/optimation7.png" style="width: 600px;"/>
+</div>
+筛选自己要看的app，每个app都是一个都是一个进程，可以同时查看 cpu 和 内存的使用情况
+
 ### 异常处理
 避免意外崩溃，app意外崩溃无非是两种原因
 1. 调用方法不当
@@ -28,7 +41,7 @@ categories: ios
 2. 内存溢出
     * 加载大内容的东西，没有及时释放。比如同时加载了100000张图片
     * 循环引用，用完的东西没有释放
-    * 死循环，递归没有终止条件
+    * 栈溢出, 死循环, 递归没有终止条件
 
 ### 卡顿的原因
 在屏幕成像的过程中，CPU和GPU起着至关重要的作用,在iOS程序中
@@ -58,6 +71,7 @@ categories: ios
 > 按照60FPS的刷帧率，每隔16ms就会有一次VSync信号
 
 #### 卡顿优化 - CPU
+
 * 尽量用轻量级的对象，比如用不到事件处理的地方，可以考虑使用CALayer取代UIView
 
 * 不要频繁地调用UIView的相关属性，比如frame、bounds、transform等属性，尽量减少不必要的修改
