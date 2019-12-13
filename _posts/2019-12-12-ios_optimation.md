@@ -19,19 +19,6 @@ categories: ios
 4. app快速启动
 5. 应用包尽量小
 
-#### CPU & Memory的检测
-使用 instruments - > activity monitor 来检测
-<div class="center">
-<image src="/resource/optimation/optimation6.png" style="width: 600px;"/>
-</div>
-
-选择手机和app, 只能开启使用开发证书签名的app
-
-<div class="center">
-<image src="/resource/optimation/optimation7.png" style="width: 600px;"/>
-</div>
-筛选自己要看的app，每个app都是一个都是一个进程，可以同时查看 cpu 和 内存的使用情况
-
 ### 异常处理
 避免意外崩溃，app意外崩溃无非是两种原因
 1. 调用方法不当
