@@ -4,6 +4,9 @@ title:  "性能优化"
 date:   2019-12-12
 categories: ios
 ---
+
+<span>这一篇主要讲性能优化的策略，性能检测请查看另外一篇[instruments](ios_instruments)</span>
+
 做性能优化之前，首先要有指标，明确需要优化什么？
 那里出错了？
 
@@ -23,12 +26,19 @@ categories: ios
 避免意外崩溃，app意外崩溃无非是两种原因
 1. 调用方法不当
     * OC中调用了没有实现的方法
+    > 可以使用OC的消息转发机制处理，避免崩溃，并发错误信息当成警告上传，方便后面分析，优化
     * 数组越界
+    > OC 的数组 也同样可以使用消息转发机制避免崩溃
     * 野指针
+    > 只能靠经验来尽量减少    
 2. 内存溢出
     * 加载大内容的东西，没有及时释放。比如同时加载了100000张图片
+    > 对于已知的缓存类，可以通过添加内存不足的监听，内存不足时手动释放来解决<br>
+    对于未知的内存增长可以借助Allocations来检测
     * 循环引用，用完的东西没有释放
+    > 每个类打印`dealloc`或 `deinit`方法，遇到没释放的类，可以借助XCode 的 `debug memory graph` 来分析
     * 栈溢出, 死循环, 递归没有终止条件
+    > 这种bug，在运行时可以很明显的看到重复调用的方法，添加终止条件就好
 
 ### 卡顿的原因
 在屏幕成像的过程中，CPU和GPU起着至关重要的作用,在iOS程序中
@@ -53,21 +63,22 @@ categories: ios
 </div>
 
 * 卡顿解决的主要思路
-> 尽可能减少CPU、GPU资源消耗
-
+> 尽可能减少CPU、GPU资源消耗<br>
 > 按照60FPS的刷帧率，每隔16ms就会有一次VSync信号
+
+可以使用CADisplay来检测是否掉桢
 
 #### 卡顿优化 - CPU
 
-* 尽量用轻量级的对象，比如用不到事件处理的地方，可以考虑使用CALayer取代UIView
+* 尽量用轻量级的对象，比如用不到事件处理的地方，可以考虑使用`CALayer`取代`UIView`
 
-* 不要频繁地调用UIView的相关属性，比如frame、bounds、transform等属性，尽量减少不必要的修改
+* 不要频繁地调用UIView的相关属性，比如`frame`、`bounds`、`transform`等属性，尽量减少不必要的修改
 
 * 尽量提前计算好布局，在有需要时一次性调整对应的属性，不要多次修改属性
 
-* Autolayout会比直接设置frame消耗更多的CPU资源
+* **`Autolayout`会比直接设置`frame`消耗更多的CPU资源**
 
-* 图片的size最好刚好跟UIImageView的size保持一致
+* 图片的`size`最好刚好跟`UIImageView`的`size`保持一致
 
 * 控制一下线程的最大并发数量
 
@@ -82,9 +93,11 @@ categories: ios
 
 * 尽量减少视图数量和层次
 
-* 减少透明的视图（alpha<1），不透明的就设置opaque为YES
+* **减少混合图层** 减少透明的视图（alpha<1），不透明的就设置opaque为YES, 避免使用 clearColor, UILabel 默认的背景色就是 clearColor
+    * 只要图片里边有透明区域就会触发混合图层，所以滚动列表应减少，或者不要显示透明的图片
 
 * 尽量避免出现离屏渲染
+
 
 #### 离屏渲染
 * 在OpenGL中，GPU有2种渲染方式
@@ -106,7 +119,8 @@ categories: ios
 
 #### 卡顿检测
 * 平时所说的“卡顿”主要是因为在主线程执行了比较耗时的操作
-* 可以添加Observer到主线程RunLoop中，通过监听RunLoop状态切换的耗时，以达到监控卡顿的目的
+* 可以添加Observer到主线程RunLoop中，通过监听RunLoop状态切换的耗时，以达到监控卡顿的目的(CADisplayLink)
+* 使用 Core Animation 查看帧率
 
 ### 耗电的主要来源
 * CPU处理，Processing
@@ -150,15 +164,63 @@ categories: ios
 * APP启动时间的优化，主要是针对冷启动进行优化
 
 * 通过添加环境变量可以打印出APP的启动时间分析（Edit scheme -> Run -> Arguments）
-    * DYLD_PRINT_STATISTICS设置为1
-    * 如果需要更详细的信息，那就将DYLD_PRINT_STATISTICS_DETAILS设置为1
+    * `DYLD_PRINT_STATISTICS`设置为1
+
+    ```cpp
+    Total pre-main time: 646.13 milliseconds (100.0%)
+         dylib loading time: 440.17 milliseconds (68.1%)
+        rebase/binding time:   1.53 milliseconds (0.2%)
+            ObjC setup time:  19.25 milliseconds (2.9%)
+           initializer time: 185.04 milliseconds (28.6%)
+           slowest intializers :
+             libSystem.B.dylib :   5.11 milliseconds (0.7%)
+   libBacktraceRecording.dylib :  17.33 milliseconds (2.6%)
+    libMainThreadChecker.dylib :  18.26 milliseconds (2.8%)
+                  AFNetworking :  27.73 milliseconds (4.2%)
+                     MJRefresh :  34.13 milliseconds (5.2%)
+                  RevealServer :  73.97 milliseconds (11.4%)
+    ```
+    * 如果需要更详细的信息，那就将`DYLD_PRINT_STATISTICS_DETAILS`设置为1<br>
+
+    ```cpp
+      total time: 1.7 seconds (100.0%)
+  total images loaded:  449 (413 from dyld shared cache)
+  total segments mapped: 114, into 7554 pages
+  total images loading time: 1.3 seconds (75.7%)
+  total load time in ObjC:  22.53 milliseconds (1.2%)
+  total debugger pause time: 860.82 milliseconds (48.3%)
+  total dtrace DOF registration time:   0.12 milliseconds (0.0%)
+  total rebase fixups:  170,775
+  total rebase fixups time:  12.50 milliseconds (0.7%)
+  total binding fixups: 607,593
+  total binding fixups time: 219.62 milliseconds (12.3%)
+  total weak binding fixups time:   2.39 milliseconds (0.1%)
+  total redo shared cached bindings time: 222.65 milliseconds (12.5%)
+  total bindings lazily fixed up: 0 of 0
+  total time in initializers and ObjC +load: 173.83 milliseconds (9.7%)
+                         libSystem.B.dylib :   7.34 milliseconds (0.4%)
+               libBacktraceRecording.dylib :   4.28 milliseconds (0.2%)
+                libMainThreadChecker.dylib :  18.92 milliseconds (1.0%)
+                              AFNetworking :  59.35 milliseconds (3.3%)
+                                 MJRefresh :  30.78 milliseconds (1.7%)
+                              RevealServer :  44.67 milliseconds (2.5%)
+                              CNDinoReader :   1.90 milliseconds (0.1%)
+                              ```
+```cpp
+total symbol trie searches:    1369834
+total symbol table binary searches:    0
+total images defining weak symbols:  46
+total images using weak symbols:  109
+```
+
+
 
 * APP的冷启动可以概括为3大阶段
     * dyld
     * runtime
     * main
 <div class="center">
-<image src="/resource/optimation/optimation4.png" style="width: 600px;"/>
+<image src="/resource/optimation/optimation4.png" style="width: 900px;"/>
 </div>
 
 #### dyld
@@ -222,3 +284,6 @@ categories: ios
 </div>
 
 * 可借助第三方工具解析LinkMap文件： https://github.com/huanxsd/LinkMap
+
+
+**NSCache， 断点续传**
