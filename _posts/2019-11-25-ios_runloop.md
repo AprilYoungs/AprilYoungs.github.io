@@ -214,10 +214,12 @@ struct __CFRunLoopMode {
 
 * 不同组的`Source0/Source1/Timer/Observer`能分隔开来，互不影响
 
-* 如果`Mode`里没有任何`Source0/Source1/Timer/Observer`，`RunLoop`会立马退出
+* 如果`Mode`里没有任何`Source0/Source1/Timer/Observer`，
+`RunLoop`会立马退出
     * 不同的`mode`用来处理不同的事件，比如上班的`mode`做上班的事，下班的`mode`做下班的事
 * 常见的2种`Mode`
-    * `kCFRunLoopDefaultMode（NSDefaultRunLoopMode）`：App的默认Mode，通常主线程是在这个`Mode`下运行
+    * `kCFRunLoopDefaultMode`
+    `（NSDefaultRunLoopMode）`：App的默认Mode，通常主线程是在这个`Mode`下运行
     * `UITrackingRunLoopMode`：界面跟踪 `Mode`，用于 `ScrollView` 追踪触摸滑动，保证界面滑动时不受其他 `Mode` 影响
 
 #### CFRunLoopObserverRef

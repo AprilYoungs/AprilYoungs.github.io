@@ -232,6 +232,15 @@ def run():
         helper.save_inference_samples(output_dir, data_dir, sess, image_shape, logits, keep_prob, input_image)
 ```
 
-关于超参,我们选择 epochs=40,batch_size=16,num_class=2,image_shape=(160,576).训练了dropout=0.1,dropout=0.25,dropout=0.5,dropout=0.75,keep_prob=1.0.
+关于超参,我们选择 
+epochs=40,
+batch_size=16,
+num_class=2,
+image_shape=(160,576).
+训练了dropout=0.1,
+dropout=0.25,
+dropout=0.5,
+dropout=0.75,
+keep_prob=1.0.
 虽然从losses的平均值来看dropout=0.5的最低,但是从下图可以看出,dropout=0.75预测效果最好.
 ![](/resource/fcn/Screenshot 2018-12-07 at 22.11.49.png)

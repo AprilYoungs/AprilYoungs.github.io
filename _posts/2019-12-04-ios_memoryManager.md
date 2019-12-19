@@ -636,7 +636,8 @@ NSObject *obj = [[[NSObject alloc] init] autorelease];
 iOS在主线程的`Runloop`中注册了2个Observer
 * 第1个Observer监听了`kCFRunLoopEntry`事件，会调用`objc_autoreleasePoolPush()`
 * 第2个Observer
-    * 监听了`kCFRunLoopBeforeWaiting`事件，会调用`objc_autoreleasePoolPop()`、`objc_autoreleasePoolPush()`
+    * 监听了`kCFRunLoopBeforeWaiting`事件，会调用`objc_autoreleasePoolPop()`、
+    `objc_autoreleasePoolPush()`
     * 监听了`kCFRunLoopBeforeExit`事件，会调用`objc_autoreleasePoolPop()`
 
 打印 [NSRunLoop mainRunLoop], 可以找到这样这两个observer

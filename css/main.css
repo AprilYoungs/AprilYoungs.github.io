@@ -118,38 +118,42 @@ table {
 }
 
 @media only screen 
-and (max-device-width: 480px)
+and (max-device-width: 800px)
 {
     /* styles for mobile browsers smaller than 480px; (iPhone) */
     h1 {
-        font-size: 3.5rem;
+        font-size: 4.5rem;
     }
     h2 {
-        font-size: 3.0rem;
+        font-size: 4.0rem;
     }
     h3 {
-        font-size: 2.25rem;
+        font-size: 3.25rem;
     }
     h4 {
-        font-size: 1.95rem;
+        font-size: 2.95rem;
     }
     p {
-        font-size: 1.5rem;
-        line-height: 2.1rem;
+        font-size: 2.5rem;
+        line-height: 3.5rem;
+    }
+    li {
+        font-size: 2.5rem;
+        line-height: 3.5rem;
     }
     ul.posts {
-        font-size: 2.254em;
+        font-size: 3.254em;
         padding-inline-start:0px
     }
     footer {
-        font-size: 1.2rem;
+        font-size: 2.2rem;
     }
     span {
-        font-size: 1.35rem;
-        line-height: 2.1em;
+        font-size: 2.35rem;
+        line-height: 2.35rem;
     }
     code {
-        font-size: 1.4rem !important;
+        font-size: 2.4rem !important;
     }
 }
 

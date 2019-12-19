@@ -29,7 +29,10 @@ meta-class对象的isa指向基类的meta-class对象
 `willChangeValueForKey:`
 父类原来的setter
 `didChangeValueForKey:`<br>
-内部会触发监听器（Oberser）的监听方法`(observeValueForKeyPath:ofObject:change:context:）`
+内部会触发监听器（Oberser）的监听方法
+```cpp
+(observeValueForKeyPath:ofObject:change:context:）
+```
 
 * 如何手动触发KVO？
 > 手动调用`willChangeValueForKey:`和`didChangeValueForKey:`

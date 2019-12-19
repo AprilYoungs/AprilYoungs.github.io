@@ -130,7 +130,7 @@ int main(){
 ![](/resource/data_structrue/heap_complexy.png)
 
 ### 使用例子
-```
+```cpp
 /**
  * Your KthLargest object will be instantiated and called as such:
  * KthLargest* obj = new KthLargest(k, nums);
@@ -150,6 +150,7 @@ int main(){
  * kthLargest.add(4);   // returns 8
  * */
 ```
+
 ```cpp
 // with min priority queue
 class KthLargest {
