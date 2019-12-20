@@ -109,13 +109,13 @@ categories: ios
     * 离屏渲染的整个过程，需要多次切换上下文环境，先是从当前屏幕（On-Screen）切换到离屏（Off-Screen）；等到离屏渲染结束以后，将离屏缓冲区的渲染结果显示到屏幕上，又需要将上下文环境从离屏切换到当前屏幕
 
 * 哪些操作会触发离屏渲染？
-    * 光栅化，layer.shouldRasterize = YES
+    * 光栅化，`layer.shouldRasterize = YES`
 
-    * 遮罩，layer.mask
+    * 遮罩，`layer.mask`
 
-    * 圆角，同时设置layer.masksToBounds = YES、layer.cornerRadius大于0<br>考虑通过CoreGraphics绘制裁剪圆角，或者叫美工提供圆角图片
+    * 圆角，同时设置`layer.masksToBounds = YES`、`layer.cornerRadius`大于0<br>考虑通过`CoreGraphics`绘制裁剪圆角，或者叫美工提供圆角图片
 
-    * 阴影，layer.shadowXXX<br>如果设置了layer.shadowPath就不会产生离屏渲染
+    * 阴影，`layer.shadowXXX`<br>如果设置了`layer.shadowPath`就不会产生离屏渲染
 
 #### 卡顿检测
 * 平时所说的“卡顿”主要是因为在主线程执行了比较耗时的操作
@@ -164,8 +164,9 @@ categories: ios
 * APP启动时间的优化，主要是针对冷启动进行优化
 
 * 通过添加环境变量可以打印出APP的启动时间分析（Edit scheme -> Run -> Arguments）
-    * `DYLD_PRINT_STATISTICS`设置为1
-
+![](/resource/optimation/optimation41.png)
+  
+* `DYLD_PRINT_STATISTICS`设置为1
     ```cpp
     Total pre-main time: 646.13 milliseconds (100.0%)
          dylib loading time: 440.17 milliseconds (68.1%)
@@ -180,40 +181,35 @@ categories: ios
                      MJRefresh :  34.13 milliseconds (5.2%)
                   RevealServer :  73.97 milliseconds (11.4%)
     ```
-    * 如果需要更详细的信息，那就将`DYLD_PRINT_STATISTICS_DETAILS`设置为1<br>
-
+* 如果需要更详细的信息，那就将`DYLD_PRINT_STATISTICS_DETAILS`设置为1<br>
     ```cpp
-      total time: 1.7 seconds (100.0%)
-  total images loaded:  449 (413 from dyld shared cache)
-  total segments mapped: 114, into 7554 pages
-  total images loading time: 1.3 seconds (75.7%)
-  total load time in ObjC:  22.53 milliseconds (1.2%)
-  total debugger pause time: 860.82 milliseconds (48.3%)
-  total dtrace DOF registration time:   0.12 milliseconds (0.0%)
-  total rebase fixups:  170,775
-  total rebase fixups time:  12.50 milliseconds (0.7%)
-  total binding fixups: 607,593
-  total binding fixups time: 219.62 milliseconds (12.3%)
-  total weak binding fixups time:   2.39 milliseconds (0.1%)
-  total redo shared cached bindings time: 222.65 milliseconds (12.5%)
-  total bindings lazily fixed up: 0 of 0
-  total time in initializers and ObjC +load: 173.83 milliseconds (9.7%)
-                         libSystem.B.dylib :   7.34 milliseconds (0.4%)
-               libBacktraceRecording.dylib :   4.28 milliseconds (0.2%)
-                libMainThreadChecker.dylib :  18.92 milliseconds (1.0%)
-                              AFNetworking :  59.35 milliseconds (3.3%)
-                                 MJRefresh :  30.78 milliseconds (1.7%)
-                              RevealServer :  44.67 milliseconds (2.5%)
-                              CNDinoReader :   1.90 milliseconds (0.1%)
-                              ```
-```cpp
-total symbol trie searches:    1369834
-total symbol table binary searches:    0
-total images defining weak symbols:  46
-total images using weak symbols:  109
-```
-
-
+    total time: 1.7 seconds (100.0%)
+    total images loaded:  449 (413 from dyld shared cache)
+    total segments mapped: 114, into 7554 pages
+    total images loading time: 1.3 seconds (75.7%)
+    total load time in ObjC:  22.53 milliseconds (1.2%)
+    total debugger pause time: 860.82 milliseconds (48.3%)
+    total dtrace DOF registration time:   0.12 milliseconds     (0.0%)
+    total rebase fixups:  170,775
+    total rebase fixups time:  12.50 milliseconds (0.7%)
+    total binding fixups: 607,593
+    total binding fixups time: 219.62 milliseconds (12.3%)
+    total weak binding fixups time:   2.39 milliseconds (0.1%)
+    total redo shared cached bindings time: 222.65  milliseconds (12.5%)
+    total bindings lazily fixed up: 0 of 0
+    total time in initializers and ObjC +load: 173.83   milliseconds (9.7%)
+                      libSystem.B.dylib :   7.34 milliseconds   (0.4%)
+            libBacktraceRecording.dylib :   4.28 milliseconds   (0.2%)
+             libMainThreadChecker.dylib :  18.92 milliseconds   (1.0%)
+                           AFNetworking :  59.35 milliseconds   (3.3%)
+                              MJRefresh :  30.78 milliseconds   (1.7%)
+                           RevealServer :  44.67 milliseconds   (2.5%)
+                           CNDinoReader :   1.90 milliseconds   (0.1%)
+    total symbol trie searches:    1369834
+    total symbol table binary searches:    0
+    total images defining weak symbols:  46
+    total images using weak symbols:  109
+    ```
 
 * APP的冷启动可以概括为3大阶段
     * dyld
@@ -232,58 +228,61 @@ total images using weak symbols:  109
 
 #### runtime
 * 启动APP时，runtime所做的事情有
-    * 调用map_images进行可执行文件内容的解析和处理
-    * 在load_images中调用call_load_methods，调用所有Class和Category的+load方法
+    * 调用`map_images`进行可执行文件内容的解析和处理
+    * 在`load_images`中调用`call_load_methods`，调用所有`Class`和`Category`的`+load`方法
     * 进行各种objc结构的初始化（注册Objc类 、初始化类对象等等）
-    * 调用C++静态初始化器和__attribute__((constructor))修饰的函数
+    * 调用C++静态初始化器和`__attribute__((constructor))`修饰的函数
 
-* 到此为止，可执行文件和动态库中所有的符号(Class，Protocol，Selector，IMP，…)都已经按格式成功加载到内存中，被runtime 所管理
+* 到此为止，可执行文件和动态库中所有的符号`(Class，Protocol，Selector，IMP，…)`都已经按格式成功加载到内存中，被`runtime`所管理
 
 #### main
 * 总结一下
-    * APP的启动由dyld主导，将可执行文件加载到内存，顺便加载所有依赖的动态库
-    * 并由runtime负责加载成objc定义的结构
+    * APP的启动由`dyld`主导，将可执行文件加载到内存，顺便加载所有依赖的动态库
+    * 并由`runtime`负责加载成`objc`定义的结构
     * 所有初始化工作结束后，dyld就会调用main函数
-    * 接下来就是UIApplicationMain函数，AppDelegate的application:didFinishLaunchingWithOptions:方法
+    * 接下来就是`UIApplicationMain`函数，`AppDelegate`的`application:` `didFinishLaunchingWithOptions:`方法
 
 #### APP的启动优化
 按照不同的阶段
 * dyld
-    > 减少动态库、合并一些动态库（定期清理不必要的动态库）
-    减少Objc类、分类的数量、减少Selector数量（定期清理不必要的类、分类）
-    减少C++虚函数数量
-    Swift尽量使用struct
+    > 减少动态库、合并一些动态库（定期清理不必要的动态库）<br>
+    减少Objc类、分类的数量、减少`Selector`数量（定期清理不必要的类、分类）<br>
+    减少C++虚函数数量<br>
+    `Swift`尽量使用`struct`
 
 * runtime
-    > 用+initialize方法和dispatch_once取代所有的__attribute__((constructor))、C++静态构造器、ObjC的+load
+    > 用`+initialize`方法和`dispatch_once`取代所有的`__attribute__((constructor))`、`C++`静态构造器、`ObjC`的`+load`
 
 * main
-    > 在不影响用户体验的前提下，尽可能将一些操作延迟，不要全部都放在finishLaunching方法中
+    > 在不影响用户体验的前提下，尽可能将一些操作延迟，不要全部都放在`finishLaunching`方法中
     按需加载
+
+[详细的操作文章](https://mp.weixin.qq.com/s/S0xyhSbKNZ4qXNx479b3kA)
 
 ### 安装包瘦身
 * 安装包（IPA）主要由可执行文件、资源组成
 
 * 资源（图片、音频、视频等）
     * 采取无损压缩
-    * 去除没有用到的资源： https://github.com/tinymind/LSUnusedResources
+    * 去除没有用到的资源： [https://github.com/tinymind/LSUnusedResources](https://github.com/tinymind/LSUnusedResources)
 
 * 可执行文件瘦身
     * 编译器优化
-    > Strip Linked Product、Make Strings Read-Only、Symbols Hidden by Default设置为YES
-    > 去掉异常支持，Enable C++ Exceptions、Enable Objective-C Exceptions设置为NO， Other C Flags添加-fno-exceptions
+    > Strip Linked Product、<br>Make Strings Read-Only、<br>Symbols Hidden by Default设置为YES<br>
+    > 去掉异常支持，<br>Enable C++ Exceptions、<br>Enable Objective-C Exceptions设置为NO，<br> Other C Flags添加-fno-exceptions
 
-    * 利用AppCode（https://www.jetbrains.com/objc/）
+    * 利用[AppCode](https://www.jetbrains.com/objc/)
     检测未使用的代码：菜单栏 -> Code -> Inspect Code
 
     * 编写LLVM插件检测出重复代码、未被调用的代码
+
 #### LinkMap
 * 生成LinkMap文件，可以查看可执行文件的具体组成
 <div class="center">
 <image src="/resource/optimation/optimation5.png" style="width: 600px;"/>
 </div>
 
-* 可借助第三方工具解析LinkMap文件： https://github.com/huanxsd/LinkMap
+* 可借助第三方工具解析LinkMap文件： [https://github.com/huanxsd/LinkMap](https://github.com/huanxsd/LinkMap)
 
 
 **NSCache， 断点续传**
