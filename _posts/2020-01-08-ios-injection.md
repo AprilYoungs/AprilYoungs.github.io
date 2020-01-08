@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  '如果对别人的iOS应用"动手脚"'
+title:  '如何对别人的iOS应用"动手脚"'
 date:   2020-01-08
 categories: ios
 ---
