@@ -4,7 +4,7 @@ title:  "使用python搭建简单的后台"
 date:   2020-01-07
 categories: python
 ---
-
+[just give me the code](https://github.com/AprilYoungs/python-backend/tree/master)
 ### 环境搭建
 首先确认安装了 python3.x, 可以去官网下载, [python org](https://www.python.org/downloads/)
 ![](/resource/pythonbackend/pythonorg.jpg)
@@ -229,3 +229,6 @@ app = tornado.web.Application([
 <div class="center">
 <image src="/resource/pythonbackend/getimg2.jpg" style="width: 500px;"/>
 </div>
+
+reference: <br>
+[Python on the Backend | Udemy](https://www.udemy.com/course/python-on-the-back-end-for-beginners-http-server/)
