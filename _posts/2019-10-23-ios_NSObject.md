@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Object-C 对象的本质"
+title:  "Objective-C 对象的本质"
 date:   2019-10-23
 categories: ios
 ---
@@ -83,8 +83,8 @@ sizeof(p) -> 8
 class_getInstanceSize([People class]) -> 24
 malloc_size((__bridge void *)p) -> 32
 ```
-`sizeof` 获取变量类型的空间，这里 `p`是8位的指针 
-`class_getInstanceSize` 获取实例变量实际使用的空间 
+`sizeof` 获取变量类型的空间，这里 `p`是8位的指针 <br>
+`class_getInstanceSize` 获取实例变量实际使用的空间 <br>
 `malloc_size` 获取变量在内存中实际分配到的空间
 
 reference: [apple objc4 源码](https://opensource.apple.com/tarballs/objc4/)
