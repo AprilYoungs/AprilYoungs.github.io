@@ -132,6 +132,18 @@ ${SRCROOT}/appSign.sh
 <br>
 
 Okay, 见证奇迹的时候到了， 现在再次运行我们的工程
+
+<div class="center">
+<image src="/resource/iosInject/project15.png" style="width: 800px;"/>
+</div>
+<br>
+
+如果这个使用运行出现这样的错误, `appSign.sh` 权限不足, 运行如下代码给它赋能
+```
+chmod +x appSign.sh
+```
+
+再次运行
 <div class="center">
 <image src="/resource/iosInject/project6.jpg" style="width: 400px;"/>
 </div>

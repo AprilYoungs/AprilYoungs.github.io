@@ -154,7 +154,9 @@ dealloc的时候如果不释放timer会出现如下的错误
 ```
 上面的代码返回是`true`,因为`AYProxy`所有方法都会进入消息转发，跟直接调用`ViewController`的方法的结果是一样的。
 
-#### GCD timer
+`注意： NSProxy 在swift中不适用`
+
+### GCD timer
 GCD 的 timer 不需要添加到 `runloop`, 相对来说会比较准，而且也不用担心界面活动时timer会停止。
 
 ```objectivec
@@ -481,6 +483,14 @@ weak_clear_no_lock(weak_table_t *weak_table, id referent_id)
 // 把所有weak引用置为nil
 ```
 
+**总结**: 
+1. 如果是TaggedPointer，没有引用，直接返回
+2. 调用 C++ 析构函数
+3. 移除关联对象
+4. 移除ivar
+5. 清除附表
+6. 把所有weak引用置为nil
+
 #### copy的使用
 <div class="center">
 <image src="/resource/memoryManager/copy.png" style="width: 600px;"/>
@@ -626,7 +636,7 @@ class AutoreleasePoolPage
 extern void
 _objc_autoreleasePoolPrint(void);
 ```
-> 可以打印出当前自动释放池中有多少待释放的对象，使用这个方式的时候需要把编译模式改成MRC,并把调用autorelease方法
+> 可以打印出当前自动释放池中有多少待释放的对象，使用这个方式的时候需要把编译模式改成MRC,并调用autorelease方法
 ```cpp
 NSObject *obj = [[[NSObject alloc] init] autorelease];
 ```
