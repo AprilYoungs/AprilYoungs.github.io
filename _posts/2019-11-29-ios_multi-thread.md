@@ -560,7 +560,7 @@ class recursive_mutex_tt : nocopy_t {
 
 #### Atomic
 `atomic`用于保证属性`setter、getter`的原子性操作，相当于在`getter`和`setter`内部加了线程同步的锁<br>
-可以参考源码`objc4`的`objc-accessors.mm`
+可以参考源码`objc4`的`objc-accessors.mm`<br>
 它并不能保证使用属性的过程是线程安全的
 ```cpp
 id objc_getProperty(id self, SEL _cmd, ptrdiff_t offset, BOOL atomic) {
@@ -618,6 +618,7 @@ static inline void reallySetProperty(id self, SEL _cmd, id newValue, ptrdiff_t o
     objc_release(oldValue);
 }
 ```
+<span style="color:#a33">注意:由于atomic熟悉会给get和set方法使用不同的锁，所以不能保证线程安全<span>
 
 #### iOS线程同步方案性能比较
 <div class="center">
@@ -694,6 +695,10 @@ dispatch_barrier_async(queue, ^{
 });
 ```
 
+#### dispatch_barrier 和 dispatch_group 的比较
+* `dispatch_barrier` 是一个栅栏，开始执行`dispatch_barrier`之前会让没有执行完的任务先执行完，然后开始执行`dispatch_barrier`内部的任务，等`barrier`内部的任务执行完之后才会继续执行后面提交的异步任务。
+
+* `dispatch_group` 是一个群组的概念，只有群组里面其他任务执行完之后(群组为空的时候))，才有执行`dispatch_group_notify`里边的任务, `dispatch_group_notify`不会阻塞其他新加进入的任务的执行。
 
 
 

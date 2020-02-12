@@ -585,7 +585,7 @@ self.thread = thread;
 [self performSelector:@selector(test) onThread:self.thread withObject:nil waitUntilDone:NO];
 ```
 
-> 在必要的时候停止这个线程的runloop，这样才能线程才能被释放
+> 在必要的时候停止这个线程的runloop，这样线程才能被释放
 
 ```objectivec
 - (void)dealloc
