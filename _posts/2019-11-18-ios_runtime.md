@@ -885,6 +885,9 @@ void printIvars(Class cls)
 
 5 . 字典转模型
 > `Foundation` 有一个可以把字典转模型的方法`setValuesForKeysWithDictionary`, 但是这个方法有两点不好。
+1. 需要先 初始化变量
+2. 遇到复杂结构的字典，不能解析嵌套的字段
+3. 遇到特殊类型比如`NSURL`不会把字符串自动转化成`NSURL`
 
  ```objectivec
  // 1. 需要先 初始化变量

@@ -517,7 +517,8 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
         CFRelease(mode);
 }];
 ```
-> 当界面滚动会进入tracking mode，这个时候timer会暂停, 可以使用下面的方法，添加到通用模式`NSRunLoopCommonModes = UITrackingRunLoopMode | NSDefaultRunLoopMode`
+> 当界面滚动会进入tracking mode，这个时候timer会暂停, 可以使用下面的方法，添加到通用模式`NSRunLoopCommonModes = UITrackingRunLoopMode | NSDefaultRunLoopMode`<br>
+<span style="color:#a33">注意：</span>NSRunLoopCommonModes 还可能包含其他模式，可以手动添加 `CFRunLoopAddCommonMode(<CFRunLoopRef rl>, CFRunLoopMode mode)`
 
 ```objectivec
 NSTimer *timer = [NSTimer timerWithTimeInterval:1 repeats:YES block:^(NSTimer * _Nonnull timer) {

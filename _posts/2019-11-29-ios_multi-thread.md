@@ -701,7 +701,6 @@ dispatch_barrier_async(queue, ^{
 * `dispatch_group` 是一个群组的概念，只有群组里面其他任务执行完之后(群组为空的时候))，才有执行`dispatch_group_notify`里边的任务, `dispatch_group_notify`不会阻塞其他新加进入的任务的执行。
 
 
-
 ## GNUstep
 GNUstep是GNU计划的项目之一，它将Cocoa的OC库重新开源实现了一遍
 
