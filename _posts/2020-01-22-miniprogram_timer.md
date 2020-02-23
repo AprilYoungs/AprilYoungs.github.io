@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Timer for toastmasters' timer"
-date:   2020-01-22
+date:   2020-02-23
 categories: mini-program
 ---
 
@@ -78,5 +78,8 @@ Anytime you want to pause the timer, make the screen become normal (that means y
 You can remove all at the beginning of the meeting, or remove some records.
 
 <span style="color:#0a0">Green</span> means the time the speaker used is less then the time span, <span style="color:#a00">red</span> means used extra time.
+
+#### Get the mini-program
+ <image src="/resource/timer/qrcode.jpg" style="width: 200px; max-width:auto;"/>
 
 [Source code]()
