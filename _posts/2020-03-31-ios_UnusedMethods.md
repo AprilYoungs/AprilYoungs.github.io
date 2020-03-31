@@ -5,7 +5,7 @@ date:   2020-03-31
 categories: ios
 ---
 
-After several iterations, we may find our iOS project has many unused selectors or class, if we can to clear the code and make the project run faster. We might need to remove some unused code, some unused methods.
+After several iterations, we may find our iOS project has many unused selectors or class, if we want to clear the code and make the project run faster. We might need to remove some unused code, some unused methods.
 
 #### Make it short
 **Get all methods**:We can find all the Objective-C methods from **linkMap**<br>
