@@ -5,6 +5,10 @@ date:   2020-04-14
 categories: ios
 ---
 
+<head>
+    <base target="_blank">
+</head>
+
 ### [DWAlertController](https://github.com/podkovyrin/DWAlertController)
 DWAlertController is an UIAlertController that supports displaying any view controller instead of title and message. DWAlertController fully copies the look and feel of UIAlertController and has the same API.<br>
 
