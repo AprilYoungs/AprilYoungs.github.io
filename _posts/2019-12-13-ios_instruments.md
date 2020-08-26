@@ -17,7 +17,26 @@ tips：如果打开`instrument`看不到代码的调用栈，确认一个项目�
 <div class="center">
 <image src="/resource/optimation/optimation11.png" style="width: 700px;"/>
 </div>
-
+如果还是看不到代码的调用栈，检查一下File->Symbols。查看自己项目对应项，应该会看到路径是红色的。
+<div class="center">
+<image src="/resource/optimation/optimation42.png" style="width: 700px;"/>
+</div>
+解决方法，重定向，打开工程，找到.app 对应的地址，copy
+<div class="center">
+<image src="/resource/optimation/optimation44.png" style="width: 700px;"/>
+</div>
+点击文件夹按钮，cmd+shift+G索引到刚刚copy的文件链接，这次应该就可以看到调用栈了。
+<div class="center">
+<image src="/resource/optimation/optimation43.png" style="width: 700px;"/>
+</div>
+如果每次都有这样的问题，应该是XCode生成临时文件的路径，和instrument寻找文件的路径没对应上导致的。打开XCode的偏好设置，找到Location->derived data, copy路径。
+<div class="center">
+<image src="/resource/optimation/optimation45.png" style="width: 700px;"/>
+</div>
+打开instrument的偏好设置->symbols.添加刚刚复制的路径。这下应该能够永久解决看不到调用栈的问题。
+<div class="center">
+<image src="/resource/optimation/optimation46.png" style="width: 700px;"/>
+</div>
 
 
 打开项目，点击 Product-> Profile 编译好之后，就可以开始使用instruments
@@ -209,4 +228,5 @@ XCode 10 以后想要查看是否有混合图层，是否有离屏渲染，可�
 
 reference: <br>
 [instruments-tutorial-getting-started](https://www.raywenderlich.com/4784723-instruments-tutorial-getting-started)<br>
-[practical-instruments](https://www.raywenderlich.com/5176-practical-instruments)
+[practical-instruments](https://www.raywenderlich.com/5176-practical-instruments)<br>
+[xcode Time Profiler not showing symbol name](https://stackoverflow.com/questions/12610779/xcode-time-profiler-not-showing-symbol-name)
