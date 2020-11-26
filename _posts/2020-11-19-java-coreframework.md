@@ -1,10 +1,10 @@
 ---
 layout: post
-title:  "JAVA 常用核心类库"
-date:   2020-11-12
+title:  "JAVA 常用核心类库(上)"
+date:   2020-11-19
 categories: java se
 ---
-# 常用核心类库
+# 常用核心类库(上)
 
 
 ## lang
