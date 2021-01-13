@@ -1,11 +1,9 @@
 ---
 layout: post
-title:  "java后端技术"
+title:  "tomcat及其实践"
 date:   2020-12-28
 categories: java web
 ---
-# 后端技术(上)
-
 
 ## tomcat
 
