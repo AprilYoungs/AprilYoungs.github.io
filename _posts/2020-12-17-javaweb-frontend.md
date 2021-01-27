@@ -53,9 +53,9 @@ categories: java web
 
 - 选择器组
 
-	- div, img (|| 满足一个条件)
+	- div, img (`||` 满足一个条件)
 
-	- div.class (&&必须满足两个条件)
+	- div.class (`&&`必须满足两个条件)
 
 - 派生选择器
 
