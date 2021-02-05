@@ -4,7 +4,6 @@ title:  "Impala--交互式查询工具"
 date:   2021-2-5
 categories: big data
 ---
-# Impala 交互式查询工具
 
 ## 概述
 
