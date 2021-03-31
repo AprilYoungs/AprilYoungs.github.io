@@ -2,67 +2,82 @@ body {
     margin: 50px;
     background: #fffff9
 }
-nav ul, footer ul {
-    font-family:'Helvetica', 'Arial', 'Sans-Serif';
+
+nav ul,
+footer ul {
+    font-family: 'Helvetica', 'Arial', 'Sans-Serif';
     padding: 0px;
     list-style: none;
     font-weight: bold;
 }
-nav ul li, footer ul li {
+
+nav ul li,
+footer ul li {
     display: inline;
     margin-right: 20px;
 }
+
 a {
     text-decoration: none;
     color: #08b;
 }
 
 a:active {
-    test:expression(target="_blank");
+    test: expression(target="_blank");
 }
 
 a:hover {
     text-decoration: underline;
 }
+
 h1 {
     font-size: 2.5em;
-    font-family:'Helvetica', 'Arial', 'Sans-Serif';
+    font-family: 'Helvetica', 'Arial', 'Sans-Serif';
 }
+
 h2 {
     font-size: 1.9em;
-    font-family:'Helvetica', 'Arial', 'Sans-Serif';
+    font-family: 'Helvetica', 'Arial', 'Sans-Serif';
 }
+
 h3 {
     font-size: 1.5em;
-    font-family:'Helvetica', 'Arial', 'Sans-Serif';
+    font-family: 'Helvetica', 'Arial', 'Sans-Serif';
 }
+
 h4 {
     font-size: 1.3em;
-    font-family:'Helvetica', 'Arial', 'Sans-Serif';
+    font-family: 'Helvetica', 'Arial', 'Sans-Serif';
 }
+
 p {
     font-size: 1.5rem;
     line-height: 2.0rem;
     color: #333;
 }
+
 li {
     font-size: 1.5rem;
     line-height: 2.0rem;
 }
+
 ul.posts {
     margin: 20px auto 40px;
     font-size: 1.5em;
     text-align: center;
 }
+
 footer {
     border-top: 1px solid #d5d5d5;
     font-size: .8em;
 }
+
 span {
     font-size: 0.9em;
     line-height: 1.4em;
     color: #aaa;
 }
+
 html body blockquote {
     margin: 16px 0;
     font-size: inherit;
@@ -71,9 +86,10 @@ html body blockquote {
     border-left: 4px solid #d6d6d6;
     background-color: #F2F2F2;
 }
+
 code {
-    font-family: Menlo,Monaco,Consolas,'Courier New',monospace;
-    font-size: .85em !important;
+    font-family: Menlo, Monaco, Consolas, 'Courier New', monospace;
+    font-size: 1em !important;
     color: rgb(182, 57, 57);
     background-color: #f0f0f0;
     border-radius: 3px;
@@ -81,13 +97,13 @@ code {
 }
 
 img {
-  width: auto;
-  max-width: 100%;
-  margin: 0 auto;
-  /* width: auto; */
+    width: auto;
+    max-width: 100%;
+    margin: 0 auto;
+    /* width: auto; */
 }
 
-div .center{
+div .center {
     text-align: center;
 }
 
@@ -95,22 +111,22 @@ ul.posts li {
     list-style: none;
 }
 
-
-blockquote code
-{
+blockquote code {
     background-color: #d0d0d0;
 }
 
-html body table td, 
+html body table td,
 html body table th {
     border: 1px solid #d6d6d6;
     padding: 6px 13px;
 }
+
 td {
     display: table-cell;
     vertical-align: inherit;
     text-align: center;
 }
+
 html body table {
     margin: 10px 0 15px 0;
     border-collapse: collapse;
@@ -121,14 +137,13 @@ html body table {
     word-break: normal;
     word-break: keep-all;
 }
+
 table {
     border-collapse: separate;
     border-spacing: 2px;
 }
 
-@media only screen 
-and (max-device-width: 800px)
-{
+@media only screen and (max-device-width: 800px) {
     /* styles for mobile browsers smaller than 480px; (iPhone) */
     h1 {
         font-size: 4.5rem;
@@ -152,7 +167,7 @@ and (max-device-width: 800px)
     }
     ul.posts {
         font-size: 3.254em;
-        padding-inline-start:0px
+        padding-inline-start: 0px
     }
     footer {
         font-size: 2.2rem;
@@ -175,19 +190,26 @@ and (max-device-width: 800px)
 @media only screen and (min-width: 960px) {
     /* styles for browsers larger than 960px; */
 }
+
 @media only screen and (min-width: 1440px) {
     /* styles for browsers larger than 1440px; */
 }
+
 @media only screen and (min-width: 2000px) {
     /* for sumo sized (mac) screens */
 }
+
 @media only screen and (device-width: 768px) {
-   /* default iPad screens */
+    /* default iPad screens */
 }
+
+
 /* different techniques for iPad screening */
+
 @media only screen and (min-device-width: 481px) and (max-device-width: 1024px) and (orientation:portrait) {
-  /* For portrait layouts only */
+    /* For portrait layouts only */
 }
+
 @media only screen and (min-device-width: 481px) and (max-device-width: 1024px) and (orientation:landscape) {
-  /* For landscape layouts only */
+    /* For landscape layouts only */
 }
