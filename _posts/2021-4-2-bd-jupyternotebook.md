@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "使用 Jupyter notebook 启动 spark-shell"
-date:   2021-3-31
+date:   2021-4-2
 categories: big data
 ---
 在Jupyter notebook上面运行spark-shell，方便交互式学习API
