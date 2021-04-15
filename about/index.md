@@ -1,11 +1,12 @@
 ---
 layout: default
-title: 关于深度学习的简单总结
+title: 一个IT工作者的学习总结
 ---
 <div class="blurb">
-  <h1>iOS及深度学习的简单总结</h1>
-  <image src="/resource/april.jpg" style="width:300px;max-width:auto;"></image>
+  <h1>一个IT工作者的学习总结</h1>
+  <image src="/resource/april2.jpg" style="width:300px;max-width:auto;"></image>
 	<p>
-  我是一个iOS开发者,由于工作需要,在 <em>Udacity</em> 学习<em>深度学习</em>,还有<em>计算机视觉</em>,这个网站有我的学习笔记,还有一些思考. </p>
+  我不仅仅是一个iOS开发者, 同时也对各种互联网技术充满兴趣。我想做一个解决问题的人，而不只是一个程序员。 由于工作需要, 我会不断的学习各种新技术，这个网站会记录我的点滴学习心得。包括iOS，机器学习，大数据，java web，还有各种IT技术...
+  </p>
   <!-- <a href="/about">Read more about my life...</a> -->
 </div><!-- /.blurb -->
