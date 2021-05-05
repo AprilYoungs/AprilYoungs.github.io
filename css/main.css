@@ -61,6 +61,12 @@ p {
     color: #333;
 }
 
+pre {
+    font-size: 1.2rem;
+    line-height: 2.0rem;
+    color: #333;
+}
+
 li {
     font-size: 1.5rem;
     line-height: 2.0rem;

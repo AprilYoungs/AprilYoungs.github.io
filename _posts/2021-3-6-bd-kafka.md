@@ -2992,6 +2992,7 @@ categories: big data
 
 - 集群规划<br>
 ![](/resource/kafka/assets/9CA1D75D-C416-4B29-A29E-CDB157EC1836.png)
+  
   正常zk和kafka是要分开的，但是因为资源有限，所以在三台机器上分别拥有zookeeper和kafka节点
 
 - 搭建zookeeper集群
@@ -3007,20 +3008,26 @@ categories: big data
 	    
 	  # centos7-3的配置  
 	  broker.id=0  
-	  listeners=PLAINTEXT://:9092 advertised.listeners=PLAINTEXT://centos7-3:9092   
-	  log.dirs=/var/lagou/kafka/kafka-logs zookeeper.connect=centos7-1:2181,centos7-2:2181,centos7-3:2181/mykafka  
+	  listeners=PLAINTEXT://:9092 
+	  advertised.listeners=PLAINTEXT://centos7-3:9092   
+	  log.dirs=/var/lagou/kafka/kafka-logs 
+	  zookeeper.connect=centos7-1:2181,centos7-2:2181,centos7-3:2181/mykafka  
 	  # 其他使用默认  
 	    
 	  # centos7-2的配置  
 	  broker.id=1  
-	  listeners=PLAINTEXT://:9092 advertised.listeners=PLAINTEXT://centos7-2:9092   
-	  log.dirs=/var/lagou/kafka/kafka-logs zookeeper.connect=centos7-1:2181,centos7-2:2181,centos7-3:2181/mykafka  
+	  listeners=PLAINTEXT://:9092 
+	  advertised.listeners=PLAINTEXT://centos7-2:9092   
+	  log.dirs=/var/lagou/kafka/kafka-logs 
+	  zookeeper.connect=centos7-1:2181,centos7-2:2181,centos7-3:2181/mykafka  
 	  # 其他使用默认  
 	    
 	  # centos7-1的配置  
 	  broker.id=2  
-	  listeners=PLAINTEXT://:9092 advertised.listeners=PLAINTEXT://centos7-1:9092   
-	  log.dirs=/var/lagou/kafka/kafka-logs zookeeper.connect=centos7-1:2181,centos7-2:2181,centos7-3:2181/mykafka  
+	  listeners=PLAINTEXT://:9092 
+	  advertised.listeners=PLAINTEXT://centos7-1:9092   
+	  log.dirs=/var/lagou/kafka/kafka-logs 
+	  zookeeper.connect=centos7-1:2181,centos7-2:2181,centos7-3:2181/mykafka  
 	  # 其他使用默认  
 	  ```  
 	  
