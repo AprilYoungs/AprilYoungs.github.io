@@ -94,7 +94,8 @@ Spark 支持 3 种集群管理器，分别为:
 - Client模式与Cluster模式的区别
   client模式:  
   * Driver运行在客户端   
-  * 适用于调试，能直接看见各种日志 * 连接断了，任务就挂了  
+  * 适用于调试，能直接看见各种日志 
+  * 连接断了，任务就挂了  
     
   cluster模式:  
   * Driver运行在AppMaster中(运行在集群中)   
