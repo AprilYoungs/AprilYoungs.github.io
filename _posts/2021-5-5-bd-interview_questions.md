@@ -169,13 +169,13 @@ public static void postOrder2(BinaryTree root) {
 > 3. 线程安全： StringBuilder是线程不安全的，StringBuffer是线程安全的。<br>
 > 一个StringBuffer对象被多个线程使用时，因为StringBuffer中很多方法带有synchronized关键字，所以可以保证线程是安全的，但是StringBuilder则没有该关键字。所以如果要进行的操作是多线程的，那么就要使用StringBuffer，单线程的情况建议使用速度较快的StringBuidler
 
-##### 6.  ArrayList、LinkedList、Vector区别
+##### 6. ArrayList、LinkedList、Vector区别
 > 它们都是java中的长度可变数组，不过底层实现不一样；ArrayList、LinkedList都是线程不安全的<br>
 > LinkedList底层是链表，使用的不是连续的存储空间，数据元素的增删复杂度都是O(1), 查询复杂度O(n)， 另外，它还提供了List接口没有定义的方法，专门用于操作表头和表尾元素，可以当作堆栈、队列和双向队列使用；<br>
 > ArrayList底层是不可变长数组，使用的是连续的存储空间，当数组长度不够时，需要扩容，需要开辟新的空间，并把原来的元素复杂到新的空间，所以数据元素的增删复杂度都是O(n), 按下标查询的复杂度O(1)；<br>
 > Vector是线程安全的，它的底层实现和ArrayList类似，不过很多方法都带有synchronized关键字，因为线程安全所以效率低，单线程时建议使用ArrayList
 
-##### 7.  HashMap 时间复杂度？
+##### 7. HashMap 时间复杂度？
 > 增删数据的复杂度：O(1)<br>
 > 查询的复杂度：O(1)<br>
 > **理想情况下HashMap的时间复杂度为O(1)**, 最差的情况是O(n)<br>
@@ -184,7 +184,7 @@ public static void postOrder2(BinaryTree root) {
 > **结合项目中使用**:<br>
 > 非并发场景使用HashMap，并发场景可以使用HashTable，不过推荐使用ConcurrenthashMap（锁粒度更低、效率更高）
 
-##### 8.  求一个数组的第二大值？
+##### 8. 求一个数组的第二大值？
 > 排序算法的考察，有两种实现方式，下面是 [leetcode1796. 字符串中第二大的数字](https://leetcode-cn.com/problems/second-largest-digit-in-a-string/)  的实现
 >
 > 1.使用两个变量来记录最大和第二大值
@@ -287,7 +287,7 @@ rddwords.map((_, 1))
 ##### 14. 有了解过哪些机器学习的算法？
 > 开放性问题，知道多少说多少。 有监督算法：决策树，随机森林；非监督算法：KNN（最紧邻），Kmeans
 
-##### **15. 协同过滤算法的底层实现是什么？
+##### *15. 协同过滤算法的底层实现是什么？
 > 基于用户的CF基于用户的协同过滤，通过用户对不同内容（物品）的行为，来评测用户之间的相似性，找到“邻居”，基于这种相似性做出推荐。这种推荐的本质是，给相似的用户推荐其他用户喜欢的内容，这就是我们经常看到的：和你类似的人还喜欢如下内容。
 > 使用在大数据的推荐中的项目，项目的核心算法。
 
@@ -298,19 +298,62 @@ rddwords.map((_, 1))
 > 冒泡排序: 是稳定的排序,时间复杂度O(n<sup>2</sup>), 空间复杂度O(1)<br>
 > 选择排序: 是不稳定的排序,时间复杂度O(n<sup>2</sup>), 空间复杂度O(1)<br> 
 
-
 ##### 17. spark-submit几种提交模式的区别是什么？
-> 
+> 常用的集群模式有standalone-client模式，standalone-cluster模式，yarn-client模式, yarn-cluster模式<br><br>
+> standalone模式: 是spark安装包提供的集群模式，不需要安装其他资源管理系统就可以以集群模式运行; 分两种部署模式client，cluster; 调试阶段，希望立即看到app的输出可以使用client模式，但是client模式的driver都在提交app的机器上，如果有多个任务都在一台机器上提交比较考验机器的性能，而且如果提交任务的交互界面被中止，任务运行也会被中止；cluster模式任务提交之后master会在worker节点分配一台机器做driver，这样就可以在一台机器上提交多个任务，而且提交任务后不需要一直和集群保持链接状态，但是有可能找不到提交的jar包，因为driver不一定在哪台机器上，需要确保worker所在的机器有提交的jar包；不过生产阶段一般都使用yarn提交任务<br><br>
+> yarn模式: 如果机器上已经安装了yarn那么推荐使用yarn模式，因为可能还有其他服务需要依赖yarn，spark也使用yarn来调度就可以少开一个后台运行的进程；yarn集群的ResourceManager对应StandAlone的Master，yarn集群的NodeManager对应StandAlone的Worker，任务提交的运行流程和standalone基本一致；同样的也有两种部署模式client和cluster，区别就是driver所在的位置不一样，client模式需要保持提交窗口和集群的链接，cluster模式不需要；yarn-cluster和standalone-cluster模式比，还有一个优点就是yarn-cluster会把jar包上传到hdfs，不需要同步jar包到每台机器上
 
 ##### 18. spark streming在实时处理时会发生什么故障，如何停止，解决。
+> 1. Spark 版本低于 2.3.0 可能会出现 **stage停止了**<br>
+> 在使用Spark Streaming执行的时候，偶尔会出现Stage停止不动的现象<br>
+> ![](/resource/interview_questions/assets/Xnip2021-05-12_13-40-42.jpg)<br>
+> 但是点击任务进去查看任务详情，会发现状态是SUCCESSED的<br>
+> ![](/resource/interview_questions/assets/Xnip2021-05-12_13-42-28.jpg)<br>
+> 查看日志，发现日志中出现ERROR和WARN报错：<br>
+> ERROR LiveListenerBus: Dropping SparkListenerEvent because no remaining room in event queue. This likely means one of the SparkListeners is too slow and cannot keep up with the rate at which tasks are being started by the scheduler.
+WARN LiveListenerBus: Dropped 1 SparkListenerEvents since ...<br>
+> 问题的原因: 当消息队列中的消息数超过其spark.scheduler.listenerbus.eventqueue.size设置的数量（默认10000）时，会将最新的消息移除，这些消息本来是通知任务运行状态的，由于移除了，状态无法得到更新，所以会出现上面描述的现象。补充说明：spark是个分布式系统，不同组件之间的通信，比如状态更新，事件传递使用liveListenerBus完成，eventqueue表示当前活跃的消息队列<br>
+> 解决方案：在spark-submit中添加参数 `--conf spark.scheduler.listenerbus.eventqueue.size=<大于默认参数的值>`, 同时需要给driver分配更多内存<br>
+> 2. 与Kafka整合是消息无序<br>
+> 修改Kafka的ack参数，当ack=1时，master确认收到消息就算投递成功。ack=0时，发送消息就算成功，高效不准确。ack=all，master和server都要收到消息才算成功。准确不高效。这个需要根据实际场景来权衡<br>
 
 ##### 19. spark工作机制。
+> spark 有多个机制，比如容错机制，shuffle机制，调度机制等。<br>
+> **容错机制：** RDD容错: RDD之间的依赖分两种，宽依赖和窄依赖，宽依赖是这父分区可以被多个子分区所用，即多对多的关系，窄依赖是指父分区智能被一个子分区使用，即一对一的关系；当出现某个节点计算错误的时候，会顺着RDD的操作顺序往回走。如果是窄依赖错误，重新计算父RDD分区即可，因为它不依赖其他节点；如果是宽依赖错误，重算代价较高，需要重新计算所有分区上的父RDD。这个时候就需要认为添加检查点来提高容错机制的执行效率，DAG中的血缘关系过长，如果重算开销太大，所以在特定几个宽依赖上做checkPoint是有价值的。<br>
+> Driver容错：元数据checkpoint，在类似HDFS的容错存储上，保存Streaming计算信息，这种checkpoint用来恢复运行stream应用程序失败的Driver进程<br>
+> **shuffle机制:** spark等分布式计算框架中，数据被分成一块一块的分区，分布在集群中各个节点上，每个计算任务一次处理一个分区，当需要对具有某种共同特征的一类数据进行计算时，就需要将集群中的这类数据汇聚到同一个节点。这个按照一定的规制对数据重新分区的过程就是shuffle。Spark的shuffle过程分为Writer和Reader，Writer负责生成中间数据，Reader负责整合中间数据，shuffle过程会根据数据规模选用合适的Writer实现；具体的有hash base shuffle，sort base shuffle；<br>
 
 ##### 20. Kafka和sparkStreaming的整合，手动提交的offset调用了什么方法？
+> 手动提交Offset需要处理处理三步操作:<br>
+> 1. kakfa config 设置 `enable.auto.commit = false`<br>
+> 2. 创建Kafka流的时候需要提交缓存的offset<br>
+> 3. 每次读取数据的时候缓存offset到自定义的数据库，比如redis<br>
+> 需用调用的方法<br> 
 
-##### 21. SparkStreaming如何保证数据的防丢失
+```scala
+   dstream.foreachRDD { (rdd, time) =>
+      if (!rdd.isEmpty()) {
+        // 获取offset
+        val offsetRanges: Array[OffsetRange] = rdd.asInstanceOf[HasOffsetRanges].offsetRanges
+
+        // 保存offset 到 redis
+        OffsetsWithRedisUtils.saveOffsetsToRedis(offsetRanges, groupId)
+     }
+   }
+```
+> 推荐使用MySQL和Redis缓存kafka offset；offset其实也可以自动提交，不过那样不能保证Spark Streaming处理的数据不丢失，自动提交的时候，只要spark streaming 收到kafka的数据就会提交offset，但是如果收到数据后处理过程中服务器挂了，下次在连接上kafka就会跳过没有处理成功那段数据，这是我们不想见到的结果，所以Kafka和Spark Streaming进行整合时，大多数时候需要手动提交offset
+
+##### 21. Spark Streaming如何保证数据的防丢失
+> 在Spark Streaming的生成实践中，要做到数据零丢失，需要满足以下几个先决条件：<br>
+> 1. 数据的数据源是可靠的/数据接收器的可靠的
+> 2. 应用程序的metadata被application的driver持久化了（checkpointed）
+> 下面分别对这3个条件进行介绍：<br>
+> 1. 对于一些输入数据源（比如Kafka）,Spark Streaming可以对已经接收的数据进行确认。使用手动管理offset的方式，只有数据处理成功才提交offset，这样如果Spark Streaming突然挂掉，可以继续处理没有处理成功的数据<br>
+> 2. 可靠的数据源和接收器可以让我们从接收器挂掉的情况下恢复。但是更棘手的是如果Driver挂掉如何恢复？其中一个方法就是对Driver的metadata进行checkpoint。利用这个特性，Driver可以将应用程序的重要元数据持久化到可靠的存储中，比如HDFS；然后Driver可以利用这些持久化的数据进行恢复<br>
 
 ##### 22. spark的checkpoint机制
+> RDD checkpoint: RDD之间的依赖分两种，宽依赖和窄依赖，宽依赖是这父分区可以被多个子分区所用，即多对多的关系，窄依赖是指父分区智能被一个子分区使用，即一对一的关系；当出现某个节点计算错误的时候，会顺着RDD的操作顺序往回走。如果是窄依赖错误，重新计算父RDD分区即可，因为它不依赖其他节点；如果是宽依赖错误，重算代价较高，需要重新计算所有分区上的父RDD。这个时候就需要认为添加检查点来提高容错机制的执行效率，DAG中的血缘关系过长，如果重算开销太大，所以在特定几个宽依赖上做checkPoint是有价值的。<br>
+> 元数据checkpoint: 在类似HDFS的容错存储上，保存Streaming计算信息，这种checkpoint用来恢复运行stream应用程序失败的Driver进程<br>
 
 
 

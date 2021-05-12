@@ -1322,7 +1322,7 @@ RDD(Resilient Distributed Dataset)是 Spark 中的核心概念，它是一个容
 	  }  
 	  ```
 
-	- 广告数据统计
+	- 广告数据统计<br>
 	  数据格式:timestamp province city userid adid 时间点 省份 城市 用户 广告  
 	  需求:   
 	  1、统计每一个省份点击TOP3的广告ID   
@@ -1567,7 +1567,7 @@ RDD(Resilient Distributed Dataset)是 Spark 中的核心概念，它是一个容
    可以简单的认为SparkContext代表Driver。
 
 - RDD依赖关系<br>
-![](/resource/spark_up/assets/A79AC438-4D1D-4FBD-8665-07CFAF6EE1EF.png)
+![](/resource/spark_up/assets/A79AC438-4D1D-4FBD-8665-07CFAF6EE1EF.png)<br>
   RDD只支持粗粒度转换，即在大量记录上执行的单个操作。将创建RDD的一系列  
   Lineage(血统)记录下来，以便恢复丢失的分区。 RDD的Lineage会记录RDD的元数据信息和转换行为，当该RDD的部分分区数据丢失  
   时，可根据这些信息来重新运算和恢复丢失的数据分区。  
@@ -1577,7 +1577,7 @@ RDD(Resilient Distributed Dataset)是 Spark 中的核心概念，它是一个容
   窄依赖:1:1 或 n:1  
   宽依赖:n:m;意味着有 shuffle   
     
-  查看RDD依赖的方法`toDebugString`, `dependencies`, ：  
+  查看RDD依赖的方法`toDebugString`, `dependencies` ：  
   ```scala  
   rdd5.toDebugString  
   /**  
@@ -1596,8 +1596,8 @@ RDD(Resilient Distributed Dataset)是 Spark 中的核心概念，它是一个容
   */  
   ```
 
-	- DAG(Directed Acyclic Graph) 有向无环图
-![](/resource/spark_up/assets/A2F8D821-83D8-40B8-90D2-932F938FDA40.png)
+	- DAG(Directed Acyclic Graph) 有向无环图<br>
+![](/resource/spark_up/assets/A2F8D821-83D8-40B8-90D2-932F938FDA40.png)<br>
 	  原始的RDD通过一系列的转换就就形成 了DAG，根据RDD之间的依赖关系的不同将DAG划分成不同的Stage:  
 	  * 对于窄依赖，分区的转换处理在Stage中完成计算   
 	  * 对于宽依赖，由于有Shuffle的存在，只能在parent RDD处理完成后，才能开始接下来的计算  
@@ -1624,7 +1624,7 @@ RDD(Resilient Distributed Dataset)是 Spark 中的核心概念，它是一个容
 		    
 		  task 的数量 = stage * 数据分区数
 
-- RDD持久化/缓存cache
+- RDD持久化/缓存cache<br>
   涉及到的算子:persist、cache、unpersist 都是 **Transformation**  
     
   缓存是将计算结果写入不同的介质，用户定义可定义存储级别(存储级别定义了缓存存储的介质，目前支持内存、**堆外内存**、磁盘); 通过缓存，Spark避免了RDD上的重复计算，能够极大地提升计算速度;  
@@ -2017,7 +2017,7 @@ RDD(Resilient Distributed Dataset)是 Spark 中的核心概念，它是一个容
 				- 运行效率<br>
 ![](/resource/spark_up/assets/ADE150F9-823E-4921-9EB3-1996F258FA72.png)
 
-	- 累加器
+	- 累加器<br>
 	  累加器的作用:可以实现一个变量在不同的 Executor 端能保持状态的累加; 累计器在 Driver 端定义，读取;在 Executor 中完成累加;  
 	  累加器也是 lazy 的，需要 Action 触发;Action触发一次，执行一次，触发多次，执行多次;  
 	  累加器一个比较经典的应用场景是用来在 Spark Streaming 应用中记录某些事件的 数量;  
@@ -2132,7 +2132,8 @@ RDD(Resilient Distributed Dataset)是 Spark 中的核心概念，它是一个容
 	- 提交步骤<br>
 ![](/resource/spark_up/assets/36A5710C-F7D6-4341-AC7C-C11CEB43BD05.png)
 	  1、启动应用程序，完成SparkContext的初始化   
-	  2、Driver向Master注册，申请资源 3、Master检查集群资源状况。若集群资源满足，通知Worker启动Executor 4、Executor启动后向Driver注册(称为反向注册)  
+	  2、Driver向Master注册，申请资源 
+	  3、Master检查集群资源状况。若集群资源满足，通知Worker启动Executor 4、Executor启动后向Driver注册(称为反向注册)  
 	  5、Driver完成DAG的解析，得到Tasks，然后向Executor发送Task   
 	  6、Executor 向Driver汇总任务的执行情况   
 	  7、应用程序执行完毕，回收资源
@@ -2176,12 +2177,12 @@ RDD(Resilient Distributed Dataset)是 Spark 中的核心概念，它是一个容
 	  * 尽可能早的执行filter操作，过滤无用数据  
 	  * 在filter过滤掉较多数据后，使用 coalesce 对数据进行重分区
 
-	- 使用高性能算子
+	- 使用高性能算子<br>
 	  1、避免使用groupByKey，根据场景选择使用高性能的聚合算子 reduceByKey、 aggregateByKey  
 	  2、coalesce、repartition，在可能的情况下优先选择没有shuffle的操作  
 	  3、foreachPartition 优化输出操作  
 	  4、map、mapPartitions，选择合理的选择算子;mapPartitions性能更好，但数据量大时容易导致OOM  
-	  5、用 **repartitionAndSortWithinPartitions **替代 repartition + sort 操作  
+	  5、用 **repartitionAndSortWithinPartitions**替代 repartition + sort 操作  
 	  6、合理使用 cache、persist、checkpoint，选择合理的数据存储级别  
 	  7、filter的使用  
 	  8、减少对数据源的扫描(算法复杂了)
