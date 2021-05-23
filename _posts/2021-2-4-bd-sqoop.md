@@ -12,7 +12,8 @@ Sqoop是一款开源的工具，主要用于在Hadoop(Hive)与传统的数据库
 
 ## 安装配置
 
-Sqoop 官网:http://sqoop.apache.org/ Sqoop下载地址:http://www.apache.org/dyn/closer.lua/sqoop/
+Sqoop 官网:http://sqoop.apache.org/ <br>
+Sqoop下载地址:http://www.apache.org/dyn/closer.lua/sqoop/
 
 ### 1. 下载、上传并解压
 
@@ -241,9 +242,9 @@ call batchInsertTestData(1, 100);
   * 如果 MySQL 中的表没有主键，要使用 split-by 指定分区字段  
   * 如果分区字段是字符类型，使用 sqoop 命令的时候要添加:  
   `-Dorg.apache.sqoop.splitter.allow_text_splitter=true`  
-  * 查询语句的where子句中的 `$CONDITIONS` ，也是为了做数据分区使用的，即 使只有1个Map Task
+  * 查询语句的where子句中的 `$CONDITIONS` ，也是为了做数据分区使用的，即使只有1个Map Task
 
-- MySQL 到 Hive
+- MySQL 到 Hive<br>
   在 hive 中创建表:  
   ```sql  
   CREATE TABLE mydb.goodtbl(  
@@ -304,7 +305,7 @@ sqoop export \
 ### 增量数据导入
 
 前面都是执行的全量数据导入。如果数据量很小，则采取完全源数据抽取;如果源数 据量很大，则需要抽取发生变化的数据，这种数据抽取模式叫做变化数据捕获，简称 CDC(Change Data Capture)。  
-CDC大体分为两种:侵入式和非侵入式。侵入式指CDC操作会给源系统带来性能影 响，只要CDC操作以任何一种方式对源数据库执行了SQL操作，就认为是侵入式的。
+CDC大体分为两种:侵入式和非侵入式。侵入式指CDC操作会给源系统带来性能影响，只要CDC操作以任何一种方式对源数据库执行了SQL操作，就认为是侵入式的。
 
 - 基于时间戳的CDC
   基于时间戳的CDC。抽取过程可以根据某些属性列来判断哪些数据是增量的，最常见的属性列有以下两种:  
@@ -324,9 +325,9 @@ CDC大体分为两种:侵入式和非侵入式。侵入式指CDC操作会给源�
 
 		- 手动操作
 
-			- 1. 准备初始数据
+			- 1、 准备初始数据
 
-			  ```sql  
+			  ```sql 
 			  -- 删除 MySQL 表中的全部数据 truncate table sqoop.goodtbl;  
 			    
 			  -- 删除 Hive 表中的全部数据   
@@ -336,7 +337,7 @@ CDC大体分为两种:侵入式和非侵入式。侵入式指CDC操作会给源�
 			  call batchInsertTestData(1, 100);  
 			  ```
 
-			- 2. 将数据导入Hive
+			- 2、 将数据导入Hive
 			  ```sh  
 			  sqoop import \  
 			  --connect jdbc:mysql://centos7-3:3306/sqoop \  
@@ -354,14 +355,14 @@ CDC大体分为两种:侵入式和非侵入式。侵入式指CDC操作会给源�
 			  * check-column 用来指定一些列(即可以指定多个列)，这些列在增量导入时用 来检查这些数据是否作为增量数据进行导入，和关系型数据库中的自增字段及时 间戳类似。这些被指定的列的类型不能使任意字符类型，如char、varchar等类 型都不可以  
 			  * last-value 指定上一次导入中检查列指定字段最大值
 
-			- 3. 检查hive表中是否有数据，有多少条数据
+			- 3、 检查hive表中是否有数据，有多少条数据
 
-			- 4. 再向MySQL中加入1000条数据，编号从200开始
+			- 4、 再向MySQL中加入1000条数据，编号从200开始
 			  ```sh  
 			  call batchInsertTestData(200, 1000);  
 			  ```
 
-			- 5. 再次执行增量导入，将数据从 MySQL 导入 Hive 中;此时要将 last-value 改为 100
+			- 5、 再次执行增量导入，将数据从 MySQL 导入 Hive 中;此时要将 last-value 改为 100
 			  ```sh  
 			  sqoop import \  
 			  --connect jdbc:mysql://centos7-3:3306/sqoop \  
@@ -376,11 +377,11 @@ CDC大体分为两种:侵入式和非侵入式。侵入式指CDC操作会给源�
 			  -m 1  
 			  ```
 
-			- 6. 再检查hive表中是否有数据，有多少条数据
+			- 6、 再检查hive表中是否有数据，有多少条数据
 
 		- 使用job
 
-			- 1. 创建口令文件
+			- 1、 创建口令文件
 
 			  ```sh  
 			  echo -n "12345678" > sqoopPWD.pwd  
@@ -391,7 +392,7 @@ CDC大体分为两种:侵入式和非侵入式。侵入式指CDC操作会给源�
 			  # 可以在 sqoop 的 job 中增加: --password-file /sqoop/pwd/sqoopPWD.pwd  
 			  ```
 
-			- 2. 创建 sqoop job
+			- 2、 创建 sqoop job
       
 			  ```sh  
 			  # 创建 sqoop job  
@@ -420,7 +421,7 @@ CDC大体分为两种:侵入式和非侵入式。侵入式指CDC操作会给源�
 			  sqoop job --delete myjob1  
 			  ```
 
-			- 3. 执行job
+			- 3、 执行job
 			  ```sh  
 			  sqoop job -exec myjob1  
 			  ```

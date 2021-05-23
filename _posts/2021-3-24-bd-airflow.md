@@ -330,8 +330,7 @@ Linux 系统也提供了Linux用户控制计划任务的命令:crontab 命令。
   Task 是 Operator的一个实例;
 
 - Task Instance
-  由于Task会被重复调度，每次task的运行就是不同的 Task instance。Task instance 有自己的状态，包括 success 、 running 、  
-  failed 、 skipped 、 up_for_reschedule 、 up_for_retry 、 queued 、 no_status 等;
+  由于Task会被重复调度，每次task的运行就是不同的 Task instance。Task instance 有自己的状态，包括 success 、 running 、 failed 、 skipped 、 up_for_reschedule 、 up_for_retry 、 queued 、 no_status 等;
 
 - Task Relationships
   DAGs中的不同Tasks之间可以有依赖关系;

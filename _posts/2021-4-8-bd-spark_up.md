@@ -12,22 +12,21 @@ categories: big data
 - Spark的特点
 
 	- 速度快
-	  速度快。与 MapReduce 相比，Spark基于内存的运算要快100倍以上，基于硬 盘的运算也要快10倍以上。Spark实现了高效的DAG执行引擎，可以通过基于内 存来高效处理数据流;
+	  与 MapReduce 相比，Spark基于内存的运算要快100倍以上，基于硬盘的运算也要快10倍以上。Spark实现了高效的DAG执行引擎，可以通过基于内存来高效处理数据流;
 
 	- 使用简单
-	  Spark支持 Scala、Java、Python、R的API，还支持超过80种高级算 法，使用户可以快速构建不同的应用。而且Spark支持交互式的Python和Scala 的shell，可以非常方便地在这些shell中使用Spark集群来验证解决问题的方法;
+	  Spark支持 Scala、Java、Python、R的API，还支持超过80种高级算法，使用户可以快速构建不同的应用。而且Spark支持交互式的Python和Scala 的shell，可以非常方便地在这些shell中使用Spark集群来验证解决问题的方法;
 
 	- 通用
 	  Spark提供了统一的解决方案。Spark可以用于批处理、交互式查询 (Spark SQL)、实时流处理(Spark Streaming)、机器学习(Spark MLlib)和图计算 (GraphX)。这些不同类型的处理都可以在同一个应用中无缝使用。Spark统一的解决方案非常具有吸引力，企业想用统一的平台去处理遇到的问题，减少开发和 维护的人力成本和部署平台的物力成本;
 
 	- 兼容好
-	  Spark可以非常方便地与其他的开源产品进行融合。Spark可以使用 YARN、Mesos作为它的资源管理和调度器;可以处理所有Hadoop支持的数 据，包括HDFS、HBase和Cassandra等。这对于已经部署Hadoop集群的用户特 别重要，因为不需要做任何数据迁移就可以使用Spark的强大处理能力。Spark 也可以不依赖于第三方的资源管理和调度器，它实现了Standalone作为其内置 的资源管理和调度框架，这样进一步降低了Spark的使用门槛，使得所有人都可 以非常容易地部署和使用Spark。此外，Spark还提供了在EC2上部署 Standalone的Spark集群的工具。
+	  Spark可以非常方便地与其他的开源产品进行融合。Spark可以使用 YARN、Mesos作为它的资源管理和调度器;可以处理所有Hadoop支持的数 据，包括HDFS、HBase和Cassandra等。这对于已经部署Hadoop集群的用户特别重要，因为不需要做任何数据迁移就可以使用Spark的强大处理能力。Spark 也可以不依赖于第三方的资源管理和调度器，它实现了Standalone作为其内置 的资源管理和调度框架，这样进一步降低了Spark的使用门槛，使得所有人都可以非常容易地部署和使用Spark。此外，Spark还提供了在EC2上部署Standalone的Spark集群的工具。
 
 - Spark 与 Hadoop<br>
 ![](/resource/spark_up/assets/CF422066-805D-4D4D-A238-D0CEE81D37C5.png)
-  从狭义的角度上看:Hadoop是一个分布式框架，由存储、资源调度、计算三部分组  
-  成;  
-  Spark是一个分布式计算引擎，由 Scala 语言编写的计算框架，**基于内存的快速、通 用、可扩展的大数据分析引擎**;  
+  从狭义的角度上看:Hadoop是一个分布式框架，由存储、资源调度、计算三部分组成;  
+  Spark是一个分布式计算引擎，由 Scala 语言编写的计算框架，**基于内存的快速、通用、可扩展的大数据分析引擎**;  
   从广义的角度上看，Spark是Hadoop生态中不可或缺的一部分;
 
 	- MapReduce的不足
@@ -35,7 +34,7 @@ categories: big data
 	  * 磁盘IO开销大  
 	  * 延迟高  
 	  	* 任务之间的衔接有IO开销  
-	  	* 在前一个任务执行完成之前，后一个任务无法开始。难以胜任复杂的、多阶 段计算任务
+	  	* 在前一个任务执行完成之前，后一个任务无法开始。难以胜任复杂的、多阶段计算任务
 
 	- <br>
 ![](/resource/spark_up/assets/12D6455F-0A3D-45E5-BD4B-1695813BAD48.png)
@@ -59,7 +58,7 @@ categories: big data
 	    
 	  Spark所提供的生态系统足以应对上述三种场景，即同时支持批处理、交互式查询和 流数据处理:  
 	  * Spark的设计遵循“一个软件栈满足不同应用场景”的理念(all in one)，逐渐形成了一套完整的生态系统   
-	  * 既能够提供内存计算框架，也可以支持SQL即席查询、实时流式计算、机器学习 和图计算等   
+	  * 既能够提供内存计算框架，也可以支持SQL即席查询、实时流式计算、机器学习和图计算等   
 	  * Spark可以部署在资源管理器YARN之上，提供一站式的大数据解决方案
 
 	- Spark 为什么比 MapReduce 快
@@ -78,14 +77,13 @@ categories: big data
   Spark运行架构包括:
 
 	- Cluster Manager
-	  Cluaster Manager: 是集群资源的管理者。Spark支持3种集群部署模式: Standalone、Yarn、Mesos;
+	  是集群资源的管理者。Spark支持3种集群部署模式: Standalone、Yarn、Mesos;
 
 	- Worker Node
-	  Worker Node 工作节点，管理本地资源;
+	  工作节点，管理本地资源;
 
 	- Driver Program
-	  运行应用的 main() 方法并且创建了 SparkContext。由Cluster  
-	  Manager分配资源，SparkContext 发送 Task 到 Executor 上执行;
+	  运行应用的 main() 方法并且创建了 SparkContext。由Cluster Manager分配资源，SparkContext 发送 Task 到 Executor 上执行;
 
 	- Executor
 	  在工作节点上运行，执行 Driver 发送的 Task，并向 Driver 汇报计算结果;
@@ -105,8 +103,7 @@ categories: big data
 	  	* yarn-cluster:适用于生产环境  
 	  	* yarn-client:适用于交互、调试，希望立即看到app的输出  
 	  * Cluster Manager: ResourceManager  
-	  Worker   
-	  * Node: NodeManager   
+	  * Worker Node: NodeManager   
 	  * 仅支持粗粒度的资源分配方式
 
 	- Spark On Mesos模式
@@ -119,7 +116,7 @@ categories: big data
 	- 粒度模式
 
 		- 粗粒度模式(Coarse-grained Mode)
-		  每个应用程序的运行环境由一个Dirver和 若干个Executor组成，其中，每个Executor占用若干资源，内部可运行多个Task。 应用程序的各个任务正式运行之前，需要将运行环境中的资源全部申请好，且运行过 程中要一直占用这些资源，即使空闲，最后程序运行结束后，回收这些资源。
+		  每个应用程序的运行环境由一个Dirver和 若干个Executor组成，其中，每个Executor占用若干资源，内部可运行多个Task。 应用程序的各个任务正式运行之前，需要将运行环境中的资源全部申请好，且运行过程中要一直占用这些资源，即使空闲，最后程序运行结束后，回收这些资源。
 
 		- 细粒度模式(Fine-grained Mode)
 		  鉴于粗粒度模式会造成大量资源浪费，Spark On Mesos还提供了另外一种调度模式:细粒度模式，这种模式类似于现在的云计 算，核心思想是按需分配。
@@ -140,8 +137,7 @@ categories: big data
 	  管理集群资源的服务，如standalone，Mesos，Yarn
 
 	- Deploy mode
-	  区分 driver 进程在何处运行。在 Cluster 模式下，在集群内部运  
-	  行 Driver。 在 Client 模式下，Driver 在集群外部运行
+	  区分 driver 进程在何处运行。在 Cluster 模式下，在集群内部运行 Driver。 在 Client 模式下，Driver 在集群外部运行
 
 	- Worker node
 	  运行应用程序的工作节点
@@ -1631,7 +1627,7 @@ RDD(Resilient Distributed Dataset)是 Spark 中的核心概念，它是一个容
   
 
 	- 持久化的好处
-	  RDD持久化或缓存，是Spark最重要的特征之一。可以说，缓存是Spark构建迭代式 算法和快速交互式查询的关键因素;  
+	  RDD持久化或缓存，是Spark最重要的特征之一。可以说，缓存是Spark构建迭代式算法和快速交互式查询的关键因素;  
 	    
 	  Spark速度非常快的原因之一，就是在内存中持久化(或缓存)一个数据集。当持久 化一个RDD后，每一个节点都将把计算的分片结果保存在内存中，并在对此数据集 (或者衍生出的数据集)进行的其他动作(Action)中重用。这使得后续的动作变得 更加迅速;
 

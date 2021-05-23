@@ -9,7 +9,7 @@ categories: big data
 
 ### Zookeeper是什么?
 
-Zookeeper 是一个分布式协调服务的开源框架。 主要用来解决分布式集群中应用系统的一致性问题， 例如怎样避免同时操作同一数据造成脏读的问题。  
+Zookeeper 是一个分布式协调服务的开源框架。 主要用来解决分布式集群中应用系统的**一致性问题**， 例如怎样避免同时操作同一数据造成脏读的问题。  
 * ZooKeeper 本质上是一个分布式的小文件存储系统。 提供基于类似于文件系统的目录树方式的数据存储，并且可以对树中的节点进行有效管理。  
   
 * ZooKeeper 提供给客户端监控存储在zk内部数据的功能，从而可以达到基于数据的集群管理。 诸如: 统一命名服务(dubbo)、分布式配置管理(solr的配置集中管理)、分布式消息队列 (sub/pub)、分布式锁、分布式协调等功能。
@@ -82,11 +82,14 @@ dataDir=/opt/lagou/servers/zookeeper-3.4.14/data
 #增加logdir   
 dataLogDir=/opt/lagou/servers/zookeeper-3.4.14/data/logs   
   
-#增加集群配置 ##server.服务器ID=服务器IP地址:服务器之间通信端口:服务器之间投票选举端口 server.1=centos7-1:2888:3888  
+#增加集群配置 ##server.服务器ID=服务器IP地址:服务器之间通信端口:服务器之间投票选举端口 
+server.1=centos7-1:2888:3888  
 server.2=centos7-2:2888:3888  
 server.3=centos7-3:2888:3888  
   
-#打开注释 #ZK提供了自动清理事务日志和快照文件的功能，这个参数指定了清理频率，单位是小时 autopurge.purgeInterval=1  
+#打开注释 
+#ZK提供了自动清理事务日志和快照文件的功能，这个参数指定了清理频率，单位是小时 
+autopurge.purgeInterval=1  
 ```
 
 ### 3. 添加myid配置
@@ -132,7 +135,7 @@ echo 3 >/opt/lagou/servers/zookeeper-3.4.14/data/myid
 ### 6. 编写集群启动停止脚本<br>
 ![](/resource/zookeeper/assets/40676110-6F1B-40E4-B4F2-921E79DDC209.png)
 
-```sh  
+```shell  
 vim zk.sh  
   
 #!/bin/sh  
@@ -393,8 +396,7 @@ ZkClient是Github上一个开源的zookeeper客户端，在Zookeeper原生API接
 - 集群首次启动<br>
 ![](/resource/zookeeper/assets/5BC8B2FD-4C87-4A06-88C8-E2DF79FF2281.png)
   假设有五台服务器组成的Zookeeper集群，它们的id从1-5，同时它们都是最新启动的，也就是没有历 史数据，在存放数据量这一点上，都是一样的。假设这些服务器依序启动，来看看会发生什么，  
-  (1)服务器1启动，此时只有它一台服务器启动了，它发出去的报文没有任何响应，所以它的选举状态  
-  一直是LOOKING状态。  
+  (1)服务器1启动，此时只有它一台服务器启动了，它发出去的报文没有任何响应，所以它的选举状态一直是LOOKING状态。  
   (2)服务器2启动，它与最开始启动的服务器1进行通信，互相交换自己的选举结果，由于两者都没有 历史数据，所以id值较大的服务器2胜出，但是由于没有达到超过半数以上的服务器都同意选举它(这个 例子中的半数以上是3)，所以服务器1、2还是继续保持LOOKING状态。  
   (3)服务器3启动，根据前面的理论分析，服务器3成为服务器1、2、3中的老大，而与上面不同的 是，此时有三台服务器选举了它，所以它成为了这次选举的Leader。  
   (4)服务器4启动，根据前面的分析，理论上服务器4应该是服务器1、2、3、4中最大的，但是由于前 面已经有半数以上的服务器选举了服务器3，所以它只能接收当小弟的命了。  
@@ -418,7 +420,7 @@ ZkClient是Github上一个开源的zookeeper客户端，在Zookeeper原生API接
 
 	- 主备模式保证一致性<br>
 ![](/resource/zookeeper/assets/62291EBF-030E-4C38-8F93-A63265D2B44C.png)
-	  ZK怎么处理集群中的数据?所有客户端写入数据都是写入Leader中，然后，由 Leader 复制到 Follower中。ZAB会将服务器数据的状态变更以事务Proposal的形式广播到所有的副本进程上，ZAB协 议能够保证了事务操作的一个全局的变更序号(ZXID)。
+	  ZK怎么处理集群中的数据?所有客户端写入数据都是写入Leader中，然后，由 Leader 复制到 Follower中。ZAB会将服务器数据的状态变更以事务Proposal的形式广播到所有的副本进程上，ZAB协议能够保证事务操作一个全局的变更序号(ZXID)。
 
 	- 广播消息<br>
 	  ZAB 协议的消息广播过程类似于 二阶段提交过程。对于客户端发送的写请求，全部由 Leader 接收， Leader 将请求封装成一个事务 Proposal(提议)，将其发送给所有 Follower ，如果收到超过半数反馈 ACK，则执行 Commit 操作(先提交自己，再发送 Commit 给所有 Follower)。  
@@ -427,15 +429,15 @@ ZkClient是Github上一个开源的zookeeper客户端，在Zookeeper原生API接
 	  * ZK集群为了保证任何事务操作能够有序的顺序执行，只能是 Leader 服务器接受写请求，即使是 Follower 服务器接受到客户端的请求，也会转发到 Leader 服务器进行处理。  
 	  * zk提供的应该是最终一致性的标准。zk所有节点接收写请求之后可以在一定时间内保证所有节点都能看 到该条数据!!
 
-		- 1. 发送Proposal到Follower<br>
+		- 1、 发送Proposal到Follower<br>
 ![](/resource/zookeeper/assets/42CE1640-2130-4F7F-B37E-A34936CDE966.png)
 
-		- 2. Leader接收Follower的ACK<br>
+		- 2、 Leader接收Follower的ACK<br>
 ![](/resource/zookeeper/assets/7298FC2F-160E-433F-AD42-5736D8BB00EF.png)
 
-		- 3. 超过半数ACK则Commit<br>
+		- 3、 超过半数ACK则Commit<br>
 ![](/resource/zookeeper/assets/49D33AA4-86A5-40B3-880E-BE5A69E04A54.png)
-		  不能正常反馈Follower恢复正常后会进入数据同步阶段最终与Leader保持一致
+		  不能正常反馈的Follower恢复正常后会进入数据同步阶段最终与Leader保持一致
 
 	- Leader 崩溃问题
 	  Leader宕机后，ZK集群无法正常工作，ZAB协议提供了一个高效且可靠的leader选举算法。 Leader宕机后，被选举的新Leader需要解决的问题  
@@ -450,9 +452,8 @@ ZkClient是Github上一个开源的zookeeper客户端，在Zookeeper原生API接
 ZooKeeper是一个典型的发布/订阅模式的分布式数据管理与协调框架，我们可以使用它来进行分布 式数据的发布与订阅。另一方面，通过对ZooKeeper中丰富的数据节点类型进行交叉使用，配合 Watcher事件通知机制，可以非常方便地构建一系列分布式应用中都会涉及的核心功能，如数据发布/订 阅、命名服务、集群管理、Master选举、分布式锁和分布式队列等  
   
 Zookeeper的两大特性:  
-1. 客户端如果对Zookeeper的数据节点注册Watcher监听，那么当该数据节点的内容或是其子节点  
-列表发生变更时，Zookeeper服务器就会向订阅的客户端发送变更通知。 2 .对在Zookeeper上创建的临时节点，一旦客户端与服务器之间的会话失效，那么临时节点也会被  
-自动删除  
+1. 客户端如果对Zookeeper的数据节点注册Watcher监听，那么当该数据节点的内容或是其子节点列表发生变更时，Zookeeper服务器就会向订阅的客户端发送变更通知。 
+2. 对在Zookeeper上创建的临时节点，一旦客户端与服务器之间的会话失效，那么临时节点也会被自动删除  
   
 利用其两大特性，可以实现集群机器存活监控系统，若监控系统在/clusterServers节点上注册一个 Watcher监听，那么但凡进行动态添加机器的操作，就会在/clusterServers节点下创建一个临时节 点:/clusterServers/[Hostname]，这样，监控系统就能够实时监测机器的变动情况。
 
@@ -470,7 +471,7 @@ Zookeeper的两大特性:
   * 利用Zookeeper可以创建临时带序号节点的特性来实现一个分布式锁  
   * 锁就是zk指定目录下序号最小的临时序列节点，多个系统的多个线程都要在此目录下创建临时的顺 序节点，因为Zk会为我们保证节点的顺序性，所以可以利用节点的顺序进行锁的判断。  
   * 每个线程都是先创建临时顺序节点，然后获取当前目录下最小的节点(序号)，判断最小节点是不是 当前节点，如果是那么获取锁成功，如果不是那么获取锁失败。  
-  * 获取锁失败的线程获取当前节点上一个临时顺序节点，并对对此节点进行监听，当该节点删除的时候(上一个线程执行结束删除或者是掉线zk删除临时节点)这个线程会获取到通知，代表获取到了锁。
+  * 获取锁失败的线程获取当前节点上一个临时顺序节点，并对此节点进行监听，当该节点删除的时候(上一个线程执行结束删除或者是掉线zk删除临时节点)这个线程会获取到通知，代表获取到了锁。
 
 ## Hadoop HA
 
@@ -723,7 +724,8 @@ https://hadoop.apache.org/docs/stable/hadoop-yarn/hadoop-yarn-site/ResourceManag
 
 	- 环境准备
 	  1. 修改IP   
-	  2. 修改主机名及主机名和IP地址的映3. 射 关闭防火墙  
+	  2. 修改主机名及主机名和IP地址的映射
+	  3. 关闭防火墙  
 	  4. ssh免密登录   
 	  5. 安装JDK，配置环境变量等   
 	  6. 配置Zookeeper集群

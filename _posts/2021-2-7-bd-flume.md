@@ -30,20 +30,20 @@ Flume提供对数据进行简单处理，并写到各种数据接收方的能力
   本质上是一个 JVM 进程，该JVM进程控制Event数据流从外部日志生产者 那里传输到目的地(或者是下一个Agent)。一个完整的Agent中包含了三个组 件Source、Channel和Sink，Source是指数据的来源和方式，Channel是一个数 据的缓冲池，Sink定义了数据输出的方式和目的地。
 
 - Source
-  Source是负责接收数据到Flume Agent的组件。Source组件可以处理各种类 型、各种格式的日志数据，包括avro、exec、spooldir、netcat等。
+  是负责接收数据到Flume Agent的组件。Source组件可以处理各种类 型、各种格式的日志数据，包括avro、exec、spooldir、netcat等。
 
 - Channel
-  Channel是位于Source和Sink之间的缓冲区。Channel允许Source和Sink运作 在不同的速率上。Channel是线程安全的，可以同时处理多个Source的写入操作 及多个Sink的读取操作。常用的Channel包括:  
+  是位于Source和Sink之间的缓冲区。Channel允许Source和Sink运作 在不同的速率上。Channel是线程安全的，可以同时处理多个Source的写入操作 及多个Sink的读取操作。常用的Channel包括:  
   	* Memory Channel是内存中的队列。Memory Channel在允许数据丢失的情 景下适用。如果不允许数据丢失，应该避免使用Memory Channel，因为程 序死亡、机器宕机或者重启都可能会导致数据丢失;  
-  	* File Channel将所有事件写到磁盘。因此在程序关闭或机器宕机的情况下不 会丢失数据;* Channel
+  	* File Channel将所有事件写到磁盘。因此在程序关闭或机器宕机的情况下不会丢失数据;
 
 - Sink
-  Sink不断地轮询Channel中的事件且批量地移除它们，并将这些事件批量写入到 存储或索引系统、或者被发送到另一个Flume Agent。  
+  不断地轮询Channel中的事件且批量地移除它们，并将这些事件批量写入到 存储或索引系统、或者被发送到另一个Flume Agent。  
   Sink是完全事务性的。在从Channel批量删除数据之前，每个Sink用Channel启 动一个事务。批量事件一旦成功写出到存储系统或下一个Flume Agent，Sink就 利用Channel提交事务。事务一旦被提交，该Channel从自己的内部缓冲区删除 事件。  
   Sink组件包括hdfs、logger、avro、file、null、HBase、消息队列等。
 
 - Event
-  Event是Flume定义的一个数据流传输的最小单位
+  是Flume定义的一个数据流传输的最小单位
 
 ### Flume拓扑结构
 
@@ -124,13 +124,7 @@ export JAVA_HOME=/opt/lagou/servers/jdk1.8.0_231
 ### 前置知识
 
 - 常见的 Source
-  Flume 支持的数据源种类有很多，可以来自directory、http、kafka等。Flume提供 了Source组件用来采集数据源。  
-    
-  # 3种监控日志文件Source的对比  
-  * exec Source:适用于监控一个实时追加的文件，但不能保证数据不丢失;  
-  * spooldir Source:能够保证数据不丢失，且能够实现断点续传，但延迟较高，不能实时 监控;  
-  * taildir Source:既能够实现断点续传，又可以保证数据不丢失，还能够进行实时监控。
-
+  Flume 支持的数据源种类有很多，可以来自directory、http、kafka等。Flume提供了Source组件用来采集数据源。  
 	- avro source<br>
 ![](/resource/flume/assets/94B9E7BF-3492-4AD9-B2EF-9E0583E061E6.png)
 	  监听 Avro 端口来接收外部 avro 客户端的事件流。avro-source 接收到的是经过avro序列化后的数据，然后反序列化数据继续传输。如果是avro source的话，源数据必须是经过avro序列化后的数据。利用 Avro source可以实现多 级流动、扇出流、扇入流等效果。接收通过flume提供的avro客户端发送的日 志信 息。  
@@ -147,8 +141,12 @@ export JAVA_HOME=/opt/lagou/servers/jdk1.8.0_231
 	  将指定的文件加入到“自动搜集”目录中。flume会 持续监听这个目录，把文件当做source来处理。注意:一旦文件被放到目录中后， 便不能修改，如果修改，flume会报错。此外，也不能有重名的文件
 
 	- Taildir Source(1.7)
-	  监控指定的多个文件，一旦文件内有新写入的数据， 就会将其写入到指定的sink内，本来源可靠性高，不会丢失数据。其不会对于跟踪的 文件有任何处理，不会重命名也不会删除，不会做任何修改。目前不支持Windows 系统，不支持读取二进制文件，支持一行一行的读取文本文件
+	  监控指定的多个文件，一旦文件内有新写入的数据， 就会将其写入到指定的sink内，来源可靠性高，不会丢失数据。其不会对跟踪的文件有任何处理，不会重命名也不会删除，不会做任何修改。目前不支持Windows系统，不支持读取二进制文件，支持一行一行的读取文本文件
 
+  - 3种监控日志文件Source的对比
+    * exec Source:适用于监控一个实时追加的文件，但不能保证数据不丢失;
+    * spooldir Source:能够保证数据不丢失，且能够实现断点续传，但延迟较高，不能实时 监控;
+    * taildir Source:既能够实现断点续传，又可以保证数据不丢失，还能够进行实时监控。
 - 常见的 Channel
   采集到的日志需要进行缓存，Flume提供了Channel组件用来缓存数据。
 
@@ -171,12 +169,12 @@ export JAVA_HOME=/opt/lagou/servers/jdk1.8.0_231
 	  将信息显示在标准输出上，主要用于测试
 
 	- avro sink
-	  Flume events发送到sink，转换为Avro events，并发送到配置好的hostname/port。从配置好的channel按照配置好的批量大小批量获取events
+	  Flume events发送到sink，转换为Avro events，并发送到配置好的hostname/port。从配置好的channel按照配置好的批量大小,批量获取events
 
 	- null sink
 	  将接收到events全部丢弃
 
-	- HDFS sink
+	- **HDFS sink**
 	  将 events 写进HDFS。支持创建文本和序列文件，支持两种文件 类型压缩。文件可以基于数据的经过时间、大小、事件的数量周期性地滚动  
 	    
 	  一般使用 HDFS Sink 都会采用滚动生成文件的方式，滚动生成文件的策略有:  
@@ -351,8 +349,8 @@ tail -F
   拷贝到 $FLUME_HOME/lib 文件夹下  
     
   ```sh  
-  # 在 $HADOOP_HOME/share/hadoop/httpfs/tomcat/webapps/webhdfs/WEB- INF/lib 有这些文件  
-  cd $HADOOP_HOME/share/hadoop/httpfs/tomcat/webapps/webhdfs/WEB- INF/lib  
+  # 在 $HADOOP_HOME/share/hadoop/httpfs/tomcat/webapps/webhdfs/WEB-INF/lib 有这些文件  
+  cd $HADOOP_HOME/share/hadoop/httpfs/tomcat/webapps/webhdfs/WEB-INF/lib  
   cp commons-configuration-1.6.jar $FLUME_HOME/lib/  
   cp hadoop-auth-2.9.2.jar $FLUME_HOME/lib/  
   cp hadoop-common-2.9.2.jar $FLUME_HOME/lib/  
@@ -653,7 +651,7 @@ taildir Source。Flume 1.7.0加入的新Source，相当于 spooldir source + exe
 
 ### 拦截器 Interceptor
 
-Flume支持在运行时对event进行修改或丢弃，通过拦截器来实现;   
+Flume支持在运行时对event进行**修改或丢弃**，通过拦截器来实现;   
 Flume里面的拦截器是实现了org.apache.flume.interceptor.Interceptor 接口的类;  
 拦截器可以根据配置 修改 甚至 丢弃 event;   
 Flume也支持链式的拦截器执行方式，在配置文件里面配置多个拦截器就可以了;   
@@ -705,7 +703,8 @@ source可以向多个channel同时写数据，所以也就产生了以何种方�
 ![](/resource/flume/assets/0CF80291-0EE4-414C-BD24-97EF01F02ECF.png)
   ```sh  
   a1.sources = r1  
-  a1.channels = c1 c2 c3 c4 a1.sources.r1.selector.type = multiplexing   
+  a1.channels = c1 c2 c3 c4 
+  a1.sources.r1.selector.type = multiplexing   
     
   #以每个Event的header中的state这个属性的值作为选择channel的依据   
   a1.sources.r1.selector.header = state   
@@ -785,21 +784,22 @@ N个sink将Event输出到对应的N个目的地的，通过 Sink组逻辑处理�
 一提到事务，首先就想到的是关系型数据库中的事务，事务一个典型的特征就是将一批操作做成原子性的，要么都成功，要么都失败。  
   
 在Flume中一共有两个事务:  
-* Put事务。在Source到Channel之间 * Take事务。Channel到Sink之间  
+* Put事务。在Source到Channel之间 
+* Take事务。Channel到Sink之间  
   
-从 Source 到 Channel 过程中，数据在 Flume 中会被封装成 Event 对象，也就是一 批 Event ，把这批 Event 放到一个事务中，把这个事务也就是这批event一次性的放 入Channel 中。同理，Take事务的时候，也是把这一批event组成的事务统一拿出来 到sink放到HDFS上。
+从 Source 到 Channel 过程中，数据在 Flume 中会被封装成 Event 对象，也就是一批 Event ，把这批 Event 放到一个事务中，把这个事务也就是这批event一次性的放入Channel 中。同理，Take事务的时候，也是把这一批event组成的事务统一拿出来到sink放到HDFS上。
 
 - Flume中的 Put 事务
   * 事务开始的时候会调用一个 doPut 方法， doPut 方法将一批数据放在putList中;  
-  	* putList在向 Channel 发送数据之前先检查 Channel 的容量能否放得下，如 果放不下一个都不放，只能doRollback;  
+  	* putList在向 Channel 发送数据之前先检查 Channel 的容量能否放得下，如果放不下一个都不放，只能doRollback;  
   	* 数据批的大小取决于配置参数 batch size 的值;   
-  	* putList的大小取决于配置 Channel 的参数 transaction capacity 的大 小，该参数大小就体现在putList上;(Channel的另一个参数 capacity 指 的是 Channel 的容量);  
-  * 数据顺利的放到putList之后，接下来可以调用 doCommit 方法，把putList中所有 的 Event 放到 Channel 中，成功放完之后就清空putList;
+  	* putList的大小取决于配置 Channel 的参数 transaction capacity 的大小，该参数大小就体现在putList上;(Channel的另一个参数 capacity 指 的是 Channel 的容量);  
+  * 数据顺利的放到putList之后，接下来可以调用 doCommit 方法，把putList中所有的 Event 放到 Channel 中，成功放完之后就清空putList;
 
 	- doRollback
-	  在doCommit提交之后，事务在向 Channel 存放数据的过程中，事务容易出问题。 如 Sink取数据慢，而 Source 放数据速度快，容易造成 Channel 中数据的积压，如果 putList 中的数据放不进去，会如何呢?  
+	  在doCommit提交之后，事务在向 Channel 存放数据的过程中，事务容易出问题。 如Sink取数据慢，而Source放数据速度快，容易造成 Channel 中数据的积压，如果 putList 中的数据放不进去，会如何呢?  
 	    
-	  此时会调用 doRollback 方法，doRollback方法会进行两项操作:将putList清空; 抛出 ChannelException异常。source会捕捉到doRollback抛出的异常，然后source 就将刚才的一批数据重新采集，然后重新开始一个新的事务，这就是事务的回滚。
+	  此时会调用 doRollback 方法，doRollback方法会进行两项操作:将putList清空; 抛出 ChannelException异常。source会捕捉到doRollback抛出的异常，然后source就将刚才的一批数据重新采集，然后重新开始一个新的事务，这就是事务的回滚。
 
 - Flume中的 Take 事务<br>
 ![](/resource/flume/assets/77250D30-8C15-4B6E-9139-DDEB04FC9B93.png)
@@ -816,9 +816,9 @@ N个sink将Event输出到对应的N个目的地的，通过 Sink组逻辑处理�
 	    
 	  但是，如果flush到HDFS的时候，数据flush了一半之后出问题了，这意味着已经有 一半的数据已经发送到HDFS上面了，现在出了问题，同样需要调用doRollback方法 来进行回滚，回滚并没有“一半”之说，它只会把整个takeList中的数据返回给 channel，然后继续进行数据的读写。这样开启下一个事务的时候容易造成数据重复 的问题。  
 	    
-	  Flume在数据进行采集传输的时候，有可能会造成数据的重复，但不会丢失数据。
+	  **Flume在数据进行采集传输的时候，有可能会造成数据的重复，但不会丢失数据。**
 
-- Flume数据传输的可靠性
+- ***Flume数据传输的可靠性**<br>
   Flume在数据传输的过程中是否可靠，还需要考虑具体使用Source、Channel、Sink 的类型。  
     
   * 分析Source  
@@ -1006,8 +1006,7 @@ flume-ng agent --name a2 --conf-file ~/conf/flume-avro-hdfs.conf
 flume-ng agent --name a3 --conf-file ~/conf/flume-avro-hdfs.conf  
   
 # centos7-3  
-flume-ng agent --name a1 --conf-file ~/conf/flume-taildir-  
-avro2.conf  
+flume-ng agent --name a1 --conf-file ~/conf/flume-taildir-avro2.conf  
 ```
 
 ### 6. 先hive.log中写入数据，检查HDFS目录

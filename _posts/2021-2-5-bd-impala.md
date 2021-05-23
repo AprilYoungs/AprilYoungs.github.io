@@ -9,28 +9,28 @@ categories: big data
 
 ### 是什么
 
-Impala是Cloudera提供的⼀一款开源的针对HDFS和HBASE中的PB级别数据进⾏行行交互式实时查询(Impala 速度快)，Impala是参照⾕谷歌的新三篇论⽂文当中的Dremel实现⽽而来，其中旧三篇论⽂文分别是 (BigTable，GFS，MapReduce)分别对应我们即将学的HBase和已经学过的HDFS以及MapReduce。  
-Impala最⼤大卖点和最⼤大特点就是快速  
+Impala是Cloudera提供的一款开源的针对HDFS和HBASE中的PB级别数据进行交互式实时查询(Impala 速度快)，Impala是参照谷歌的新三篇论⽂文当中的Dremel实现而来，其中旧三篇论文分别是 (BigTable，GFS，MapReduce)分别对应HBase和已经学过的HDFS以及MapReduce。  
+Impala最大卖点和最大特点就是快速  
   
 官网：https://impala.apache.org
 
 ### Impala的诞⽣
 
-之前学习的Hive以及MR适合离线批处理理，但是对交互式查询的场景无能为力(要求快速响应)，所以为了了 解决查询速度的问题，Cloudera公司依据Google的Dremel开发了了Impala,Impala抛弃了了MapReduce 使⽤用了了类似于传统的MPP数据库技术，⼤大提⾼了查询的速度。
+Hive以及MR适合离线批处理，但是对交互式查询的场景无能为力(要求快速响应)，为了解决查询速度的问题，Cloudera公司依据Google的Dremel开发了Impala,Impala抛弃了MapReduce 使⽤了类似于传统的MPP数据库技术，⼤大提⾼了查询的速度。
 
 ### MPP是什么?
 
 MPP (Massively Parallel Processing)，就是大规模并行处理，在MPP集群中，每个节点资源都是独⽴ 享有也就是有独⽴的磁盘和内存，每个节点通过网络互相连接，彼此协同计算，作为整体提供数据服务。  
   
-简单来说，MPP是将任务并行的分散到多个服务器和节点上，在每个节点上计算完成后，将各自部分的 结果汇总在⼀一起得到最终的结果  
+简单来说，MPP是将任务并行的分散到多个服务器和节点上，在每个节点上计算完成后，将各自部分的 结果汇总在一起得到最终的结果  
   
-对于MPP架构的软件来说聚合操作⽐比如计算某张表的总条数，则先进行局部聚合(每个节点并行计算)， 然后把局部汇总结果进⾏全局聚合(与Hadoop相似)。
+对于MPP架构的软件来说聚合操作比如计算某张表的总条数，则先进行局部聚合(每个节点并行计算)， 然后把局部汇总结果进⾏全局聚合(与Hadoop相似)。
 
 ### Impala与Hive对比
 
 - Impala的技术优势
   * Impala没有采取MapReduce作为计算引擎，MR是⾮常好的分布式并行计算框架，但MR引擎更多的是面向批处理模式，⽽不是面向交互式的SQL执行。与 Hive相比:Impala把整个查询任务转为 一棵执⾏计划树，而不是⼀连串的MR任务，在分发执行计划后，Impala使⽤拉取的方式获取上个 阶段的执⾏结果，把结果数据、按执行树流式传递汇集，减少的了把中间结果写入磁盘的步骤，再 从磁盘读取数据的开销。Impala使⽤服务的⽅式避免 每次执⾏查询都需要启动的开销，即相比 Hive没了MR启动时间。  
-  * 使用LLVM(C++编写的编译器)产⽣生运⾏代码，针对特定查询⽣成特定代码  
+  * 使用LLVM(C++编写的编译器)产生运⾏代码，针对特定查询⽣成特定代码  
   * 优秀的IO调度，Impala⽀持直接数据块读取和本地代码计算。  
   * 选择适合的数据存储格式可以得到最好的性能(Impala支持多种存储格式)。  
   * 尽可能使用内存，中间结果不写磁盘，及时通过⽹络以stream的⽅式传递。
@@ -57,8 +57,8 @@ MPP (Massively Parallel Processing)，就是大规模并行处理，在MPP集群
 	  * Hive:Hive是容错的(通过MR&Yarn实现)  
 	  * Impala:Impala没有容错，由于良好的查询性能，Impala遇到错误会重新执行⼀次查询
 
-	- 查询速度
-	  Impala:Impala⽐Hive快3-90倍。
+	- 查询速度:
+	  Impala⽐Hive快3-90倍。
 
 	- Impala优势总结
 	  1. Impala最大优点就是查询速度快，在一定数据量下;  
@@ -66,10 +66,10 @@ MPP (Massively Parallel Processing)，就是大规模并行处理，在MPP集群
 
 	- Impala的缺点
 	  1. Impala属于MPP架构，只能做到百节点级，一般并发查询个数达到20左右时，整个系统的吞吐已 经达到满负荷状态，在扩容节点也提升不了吞吐量，处理理数据量在PB级别最佳。  
-	  2. 资源不能通过YARN统一资源管理理调度，所以Hadoop集群无法实现Impala、Spark、Hive等组件 的动态资源共享。
+	  2. 资源不能通过YARN统一资源管理调度，所以Hadoop集群无法实现Impala、Spark、Hive等组件 的动态资源共享。
 
 	- 适⽤用场景
-	  Hive: 复杂的批处理理查询任务，数据转换任务，对实时性要求不高同时数据量⼜很⼤的场景。  
+	  Hive: 复杂的批处理查询任务，数据转换任务，对实时性要求不高同时数据量⼜很⼤的场景。  
 	  Impala:实时数据分析，与Hive配合使用, 对Hive的结果数据集进⾏实时分析。impala不能完全取代 hive，impala可以直接处理hive表中的数据。
 
 ## Impala 安装
@@ -336,16 +336,18 @@ impala只提供了rpm安装包，而安装的过程有需要索引很多依赖�
   ```  
     
   浏览器web界面验证  
-  ```  
+  ```sh  
    访问impalad的管理界面   
   http://centos7-3:25000/   
     
-  访问statestored的管理理界⾯面 http://[centos7](http://linux123:25010/)-3:25010/  
+  访问statestored的管理理界⾯
+  http://centos7-3:25010/  
   ```
 
 ## Impala⼊门案例
 
-使⽤用Yum⽅式安装Impala后，impala-shell可以全局使用;进入impala-shell命令行
+使用Yum⽅式安装Impala后，impala-shell可以全局使用;
+进入impala-shell命令行
 
 ### impala的交互窗⼝<br>
 ![](/resource/impala/assets/5FA3FDF5-357B-4D49-8C6B-94D4ACB2599D.png)
@@ -409,17 +411,17 @@ Impala同步Hive元数据命令:
 ### Impala的组件<br>
 ![](/resource/impala/assets/D6EFCF8E-714C-4CF0-986A-8F43DEDB8F2D.png)
 
-Impala是一个分布式，大规模并行处理(MPP)数据库引擎，它包括多个进程。Impala与Hive类似不是数 据库⽽而是数据分析⼯具;
+Impala是一个分布式，大规模并行处理(MPP)数据库引擎，它包括多个进程。Impala与Hive类似不是数据库而是数据分析⼯具;
 
 - impalad
   * ⻆色名称为Impala Daemon,是在每个节点上运行的进程，是Impala的核⼼组件，进程名是 Impalad;   
   * 作用，负责读写数据文件，接收来⾃自Impala-shell，JDBC,ODBC等的查询请求，与集群其它 Impalad分布式并⾏完成查询任务，并将查询结果返回给中⼼协调者。   
-  * 为了保证Impalad进程了解其它Impalad的健康状况，Impalad进程会⼀一直与statestore保持通信。  
+  * 为了保证Impalad进程了解其它Impalad的健康状况，Impalad进程会一直与statestore保持通信。  
   * Impalad服务由三个模块组成:Query Planner、Query Coordinator和Query Executor，前两个模块组成前端，负责接收SQL查询请求，解析SQL并转换成执⾏计划，交由后端执⾏
 
 - statestored
-  * statestore监控集群中Impalad的健康状况，并将集群健康信息同步给  
-  * Impalad, statestore进程名为statestored
+  * statestore监控集群中Impalad的健康状况，并将集群健康信息同步给Impalad  
+  * statestore进程名为statestored
 
 - catalogd
   * Impala执⾏的SQL语句引发元数据发变化时，catalog服务负责把这些元数据的变化同步给其它 Impalad进程(日志验证,监控statestore进程⽇志)  
@@ -460,7 +462,7 @@ Coordinator将Fragment(子任务)根据数据分区信息发配到不同的Impal
 
 ## Impala的使用
 
-Impala的核心开发语⾔是sql语句，Impala有shell命令⾏窗口，以及JDBC等⽅式来接收sql语句句执行， 对于复杂类型分析可以使⽤C++或者Java来编写UDF函数。  
+Impala的核心开发语⾔是sql语句，Impala有shell命令⾏窗口，以及JDBC等⽅式来接收sql语句执行， 对于复杂类型分析可以使⽤C++或者Java来编写UDF函数。  
 Impala的sql语法是高度集成了Apache Hive的sql语法，Impala支持Hive支持的数据类型以及部分Hive 的内置函数。
 
 ### Impala-shell
@@ -537,7 +539,7 @@ SQL基本上和hive一致，这里只写出不同点
   ```  
     
   可以使⽤关键字ASC或DESC分别按升序或降序排列表中的数据。  
-  如果我们使用NULLS FIRST，表中的所有空值都排列在顶行; 如果我们使⽤用NULLS LAST，包含空值的⾏将最后排列。
+  如果我们使用NULLS FIRST，表中的所有空值都排列在顶行; 如果我们使用NULLS LAST，包含空值的⾏将最后排列。
 
 - limit [num] offset [num]
   Impala中的limit⼦句用于将结果集的行数限制为所需的数，即查询的结果集不包含超过指定限制的记录。  
@@ -558,8 +560,7 @@ SQL基本上和hive一致，这里只写出不同点
 
 - create table as select
   建表的字段个数、类型、数据来自于后续的select查询语句。  
-  load data⽅式，这种方式不建议在Impala中使⽤，先使用load data⽅式把数据加载到Hive表中，然后  
-  使用以上⽅式插⼊Impala表中。
+  load data⽅式，这种方式不建议在Impala中使⽤，先使用load data⽅式把数据加载到Hive表中，然后使用以上⽅式插⼊Impala表中。
 
 ### Impala的JDBC方式查询
 
@@ -741,14 +742,14 @@ Impala主要有三个组件，分别是statestore，catalog和impalad，对于Im
 - 获取表的统计指标
   在追求性能或者大数据量查询的时候，要先获取所需要的表的统计指标 (如:执⾏ compute stats )
 
-- 减少传输客户端数据量
-  聚合(如 count、sum、max 等)  
-  过滤(如 WHERE )  
-  limit限制返回条数  
+- 减少传输客户端数据量<br>
+  聚合(如 count、sum、max 等)<br>  
+  过滤(如 WHERE )<br>  
+  limit限制返回条数<br>  
   返回结果不要使⽤美化格式进⾏展示(在通过impala-shell展示结果时，添加这些可选参数: - B、 --output_delimiter)
 
 - 在执行之前使用EXPLAIN来查看逻辑规划，分析执⾏逻辑
 
 - Impala join⾃动优化
-  通过使⽤COMPUTE STATS来收集参与Join的每张表的统计信息，然后由Impala根据表的⼤小、列的唯⼀值数目等来⾃动优化查询。为了更加精确地获取 每张表的统计信息，每次表的数据变更时(如执行Insert,add partition,drop partition等)最好 都要执⾏一遍COMPUTE STATS获取到准确的表统计信息。
+  通过使⽤COMPUTE STATS来收集参与Join的每张表的统计信息，然后由Impala根据表的⼤小、列的唯⼀值数目等来⾃动优化查询。为了更加精确地获取 每张表的统计信息，每次表的数据变更时(如执行Insert,add partition,drop partition等)最好都要执⾏一遍COMPUTE STATS获取到准确的表统计信息。
 

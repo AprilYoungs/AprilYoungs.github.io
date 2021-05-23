@@ -320,7 +320,7 @@ azkaban-web-server-0.1.0-SNAPSHOT.tar.gz
 ### shell command调度
 
 创建job描述文件  
-```  
+```shell  
 vi command.job  
   
 type=command  
@@ -328,7 +328,7 @@ command=echo 'hello'
 ```  
   
 将job资源文件打包成zip文件  
-```sh  
+```shell  
 zip command.job  
 ```  
 通过azkaban的web管理平台创建project并上传job压缩包
@@ -355,7 +355,7 @@ command=echo 'bar'
 ### HDFS任务调度
 
 创建job描述文件fs.job  
-```sh  
+```shell  
 type=command  
 command=/opt/lagou/servers/hadoop-2.9.2/bin/hadoop fs -mkdir /azkaban  
 ```  
@@ -366,7 +366,7 @@ command=/opt/lagou/servers/hadoop-2.9.2/bin/hadoop fs -mkdir /azkaban
 
 mr任务依然可以使用command的job类型来执行  
 创建job描述文件，及mr程序jar包(示例中直接使用hadoop自带的example jar)  
-```  
+```shell  
 vim mrwc.job  
   
 type=command  
@@ -396,7 +396,7 @@ create table aztest(id int,name string)
 row format delimited   
 fields terminated by ',';  
 ```  
-Job描述文件:hivef.job   
+Job描述文件:hive.job   
   
 ```sh  
 type=command  
