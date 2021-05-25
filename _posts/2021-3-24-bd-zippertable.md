@@ -8,7 +8,7 @@ categories: big data
 ## 缓慢变化维
 
 缓慢变化维(SCD;Slowly Changing Dimensions)。在现实世界中，维度的属性随着时间的流失发生缓慢的变化(缓慢是相对事实表而言，事实表数据变化的速度比维度表快)。  
-处理维度表的历史变化信息的问题称为处理缓慢变化维的问题，简称SCD问题。处理 缓慢变化维的方法有以下几种常见方式:  
+处理维度表的历史变化信息的问题称为处理缓慢变化维的问题，简称SCD问题。处理缓慢变化维的方法有以下几种常见方式:  
   * 保留原值  
   * 直接覆盖  
   * 增加新属性列  
@@ -54,10 +54,10 @@ categories: big data
 * 使用拉链表保存历史信息，历史拉链表，既能满足保存历史数据的需求，也能节省存储资源。  
   
 前提条件：  
-	* 订单表的刷新频率为一天，当天获取前一天的增量数据;  
-	* 如果一个订单在一天内有多次状态变化，只记录最后一个状态的信息;  
-	* 订单状态包括三个:创建、支付、完成;  
-	* 创建时间和修改时间只取到天，如果源订单表中没有状态修改时间，那么抽取增量就比较麻烦，需要有个机制来确保能抽取到每天的增量数据;
+* 订单表的刷新频率为一天，当天获取前一天的增量数据;  
+* 如果一个订单在一天内有多次状态变化，只记录最后一个状态的信息;  
+* 订单状态包括三个:创建、支付、完成;  
+* 创建时间和修改时间只取到天，如果源订单表中没有状态修改时间，那么抽取增量就比较麻烦，需要有个机制来确保能抽取到每天的增量数据;
 
 ## 拉链表的实现
 
@@ -82,7 +82,7 @@ hive 的实现
   -- 原数据表  
   DROP TABLE IF EXISTS test.userinfo;   
   CREATE TABLE test.userinfo(  
-  	userid STRING COMMENT '用户编号',   
+    userid STRING COMMENT '用户编号',   
     mobile STRING COMMENT '手机号码',   
     regdate STRING COMMENT '注册日期')  
   COMMENT '用户信息'  
@@ -126,7 +126,7 @@ hive 的实现
   ```
 
 - 更新拉链表数据
-  ````sql  
+  ```sql  
   -- 1、初始化拉链表，导入第一天的数据.   
   insert overwrite table test.userhis  
   select   
@@ -181,8 +181,8 @@ hive 的实现
   由于种种原因需要将拉链表恢复到 rollback_date 那一天的数据。此时有:  
     
   * end_date < rollback_date，即结束日期 < 回滚日期。表示该行数据在 rollback_date 之前产生，这些数据需要原样保留  
-  * start_date <= rollback_date <= end_date，即开始日期 <= 回滚日期 <= 结束日 期。这些数据是回滚日期之后产生的，但是需要修改。将end_date 改为 9999- 12-31  
-  * 其他数据不用管  
+  * start_date <= rollback_date <= end_date，即开始日期 <= 回滚日期 <= 结束日 期。这些数据的失效日期在回滚日期之后, 所以需要修改。将end_date 改为 9999-12-31  
+  * rollback_date < start_date, 即回滚日期 < 开始日期,  这部分数据需要删除
     
   ```sql  
   -- 1. 忽略回滚日期之后产生的数据 start_date > rollback_date  --> when start_date<=rollback_date  
@@ -220,8 +220,7 @@ hive 的实现
   STORED AS PARQUET;  
     
   -- 这里需要处理动态分区  
-  -- 动态插入分区表的时候，最后一个字段是分区依据，  
-  别名对结果没有影响  
+  -- 动态插入分区表的时候，最后一个字段是分区依据，别名对结果没有影响  
   set hive.exec.dynamic.partition.mode=nonstrict;  
   set hive.exec.dynamic.partition=true;  
     

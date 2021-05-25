@@ -255,11 +255,11 @@ exit()
 Linux 系统则是由 cron (crond) 这个系统服务来控制的。Linux 系统上面原本就有非常多的计划性工作，因此这个系统服务是默认启动的。  
 Linux 系统也提供了Linux用户控制计划任务的命令:crontab 命令。  
   
-* 日志文件:ll /var/log/cron*  
-* 编辑文件:vim /etc/crontab  
-* 进程:ps -ef | grep crond ==> /etc/init.d/crond restart   
+* 日志文件:`ll /var/log/cron*`  
+* 编辑文件:`vim /etc/crontab`  
+* 进程:`ps -ef | grep crond ==> /etc/init.d/crond restart`
 * 作用:任务(命令)定时调度(如:定时备份，实时备份)   
-* 简要说明:cat /etc/crontab
+* 简要说明:`cat /etc/crontab`
 
 - 格式说明
 ![](/resource/airflow/assets/B5D6699F-6501-4529-B29A-563D7730E100.png)
@@ -269,12 +269,11 @@ Linux 系统也提供了Linux用户控制计划任务的命令:crontab 命令。
   - 代表从某个区间范围，是闭区间。如2-5表示2,3,4,5，小时字段中0-23/2表示在 0~23点范围内每2个小时执行一次;  
   , 分散的数字(不连续)。如1,2,3,4,7,9;   
     
-  注:由于各个地方每周第一天不一样，因此Sunday=0(第1天)或Sunday=7(最后  
-  1天)。
+  注:由于各个地方每周第一天不一样，因此Sunday=0(第1天)或Sunday=7(最后1天)。
 
 - crontab配置实例
 
-  ```sh  
+  ```shell  
   # 每一分钟执行一次command(因cron默认每1分钟扫描一次，因此全为*即可)   
   *	 *	 *	 *	 *	command  
   # 每小时的第3和第15分钟执行command   
@@ -423,7 +422,7 @@ with DAG(
 ```
 
 - 常用指令
-  ```sh  
+  ```shell  
   # 执行命令检查脚本是否有错误。如果命令行没有报错，就表示没问题   
   python $AIRFLOW_HOME/dags/helloworld.py  
     
