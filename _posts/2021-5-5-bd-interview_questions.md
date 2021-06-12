@@ -2,7 +2,7 @@
 layout: post
 title:  "大数据开发高频面试题"
 date:   2021-5-5
-categories: algorithm
+categories: interview
 ---
 
 ##### 1. 给定a，b两个文件，各存放50亿个url，每个url长度为1-255字节，内存限制是4g，让你找出a，b文件共同的url，说明思路和执行方法。
