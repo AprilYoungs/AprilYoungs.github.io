@@ -213,7 +213,7 @@ categories: big data
 环境准备 jdk8， zookeeper-3.4.14
 
 - kafka 1.0.2安装
-  ```sh  
+  ```shell  
   # 解压安装包  
   tar -zxvf kafka_2.12-1.0.2.tgz -C /opt/lagou/servers/kafka_2.12-1.0.2  
     
@@ -227,9 +227,9 @@ categories: big data
     
   ```
 
-- 修改配置文件conf/server.properties
-  ```sh  
-  vim conf/server.properties  
+- 修改配置文件config/server.properties
+  ```shell  
+  vim config/server.properties  
     
   # 修改zookeeper目录  
   zookeeper.connect=localhost:2181/mykafka  
@@ -245,7 +245,7 @@ categories: big data
 - 启动kafka
 
 	- kafka-server-start.sh
-	  ```sh  
+	  ```shell  
 	  # 启动zookeeper  
 	  zkServer.sh start  
 	    
@@ -264,7 +264,7 @@ categories: big data
 - kafka-topics.sh
   用于管理主题  
     
-  ```sh  
+  ```shell  
   # 查看现有列表  
   kafka-topics.sh --zookeeper localhost:2181/mykafka --list  
     
@@ -284,12 +284,12 @@ categories: big data
 - kafka-console-producer.sh
   用于生产消息  
     
-  ```sh  
+  ```shell  
   # 链接上topic2，接下来可以在终端直接发布消息  
   kafka-console-producer.sh --broker-list localhost:9092 --topic topic_2  
   ```  
     
-  ```sh  
+  ```shell  
   [2021-02-22 17:03:32,354] WARN [Producer clientId=console-producer] Connection to node -1 could not be established. Broker may not be available. (org.apache.kafka.clients.NetworkClient)  
     
     
@@ -302,7 +302,7 @@ categories: big data
 - kafka-console-consumer.sh
   用于消费消息  
     
-  ```sh  
+  ```shell  
   kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic topic_2  
     
   # 从头开始读取消息  
@@ -501,7 +501,7 @@ categories: big data
 ![](/resource/kafka/assets/A8C2254E-0858-4D61-8C53-1A45B6C5ED4F.png)
 
 		- 配置文件application.properties
-		  ```sh  
+		  ```shell  
 		  spring.application.name=springboot-kafka-02  
 		  # web项目端口  
 		  server.port=8090  
@@ -679,7 +679,7 @@ categories: big data
 	- zookeeper.connect
 	  该参数用于配置Kafka要连接的Zookeeper/集群的地址。 它的值是一个字符串，使用逗号分隔Zookeeper的多个地址。Zookeeper的单个地址是 host:port形式的，可以在最后添加Kafka在Zookeeper中的根节点路径。  
 	    
-	  ```sh  
+	  ```shell  
 	  zookeeper.connect=node2:2181,node3:2181,node4:2181/myKafka  
 	  ```
 
@@ -1262,7 +1262,7 @@ categories: big data
 	  offset一旦提交后就会被kafka记录，同一group再次消费会在原先的位置继续消费
 
 		- 数据准备
-		  ```sh  
+		  ```shell  
 		  # 生成60条带序号的字符串到nm.txt  
 		  for i in `seq 60`; do echo "hello April $i" >> nm.txt; done   
 		  # 创建主题 tp_demo_01  
@@ -1426,7 +1426,7 @@ categories: big data
 		- 位移提交
 		  位移是提交到Kafka中的 __consumer_offsets 主题。 __consumer_offsets 中的消息保存了每个消费组某一时刻提交的offset信息。  
 		    
-		  ```sh  
+		  ```shell  
 		  # 查看主题原数据  
 		    
 		  kafka-console-consumer.sh --topic __consumer_offsets --bootstrap-server centos7-3:9092 --formatter "kafka.coordinator.group.GroupMetadataManager\$OffsetsMessageFormatter" --consumer.config /opt/lagou/servers/kafka_2.12-1.0.2/config/consumer.properties --from-beginning | head  
@@ -1501,7 +1501,7 @@ categories: big data
   具体配置可以在官网查看：http://kafka.apache.org/documentation/#topicconfigs
 
 	- 创建主题
-	  ```sh  
+	  ```shell  
 	  kafka-topics.sh --zookeeper localhost:2181/mykafka --create --topic topic_test_1 --partitions 3 --replication-factor 1  
 	    
 	  # 添加参数，--config  
@@ -1513,7 +1513,7 @@ categories: big data
 	    
 	  在/kafka-logs 文件夹中查看对应主题的元数据  
 	    
-	  ```sh  
+	  ```shell  
 	  kafka-topics.sh --zookeeper localhost:2181/myKafka --list  
 	    
 	  kafka-topics.sh --zookeeper localhost:2181/myKafka --describe --topic topic_x  
@@ -1522,7 +1522,7 @@ categories: big data
 	  ```
 
 	- 修改主题
-	  ```sh  
+	  ```shell  
 	  # —alter  
 	    
 	  # 添加配置  
@@ -1533,7 +1533,7 @@ categories: big data
 	  ```
 
 	- 删除主题
-	  ```sh  
+	  ```shell  
 	  kafka-topics.sh --zookeeper localhost:2181/mykafka --delete --topic topic_test_1  
 	  ```  
 	    
@@ -1544,7 +1544,7 @@ categories: big data
 	- 增加分区
 	  分区只能增加，不能减少  
 	    
-	  ```sh  
+	  ```shell  
 	  kafka-topics.sh --zookeeper localhost:2181/mykafka --alter --topic topic_test_2 --partitions 4  
 	  ```
 
@@ -1803,7 +1803,7 @@ categories: big data
   通过原生 kafka 提供的工具脚本进行查询。 工具脚本的位置与名称为 `bin/kafka-consumer-groups.sh`
 
 	- 示例代码
-	  ```sh  
+	  ```shell  
 	  # 查看消费组列表  
 	  kafka-consumer-groups.sh --bootstrap-server centos7-3:9092 --list  
 	    
@@ -1878,7 +1878,7 @@ categories: big data
 	- 示例代码
 	  在重新分布topic分区之前，我们先来看看现在topic的各个分区的分布位置:  
 	    
-	  ```sh  
+	  ```shell  
 	  # 创建一个主题  
 	  kafka-topics.sh --zookeeper centos7-3:2181/mykafka --create --topic tp_re_01 --partitions 5 --replication-factor 1  
 	    
@@ -1893,7 +1893,7 @@ categories: big data
 	  ```  
 	  创建一个文件，用来传参数  
 	    
-	  ```sh  
+	  ```shell  
 	  vim topic-to-move.json  
 	  {  
 	  "topics": [ {  
@@ -1904,7 +1904,7 @@ categories: big data
 	  }  
 	  ```  
 	    
-	  ```sh  
+	  ```shell  
 	  # 生成分区计划，--broker-list "0,1" 新的分区计划分布的brokers  
 	  kafka-reassign-partitions.sh --zookeeper centos7-3:2181/mykafka --topics-to-move-json-file topic-to-move.json --broker-list "0,1" --generate  
 	    
@@ -1931,7 +1931,7 @@ categories: big data
   Leader和Follower的角色转换会引起Leader副本在集群中分布的不均衡，此时我们需要一种手段， 让Leader的分布重新恢复到一个均衡的状态。
 
 	- 示例代码
-	  ```sh  
+	  ```shell  
 	  # 创建topic tp_demo_03, 找到分区情况 0:1,1:0,0:1， 三个分区，副本因子2，数字在前面的是leader  
 	  kafka-topics.sh --zookeeper centos7-3:2181/mykafka --create --topic tp_demo_03 --replica-assignment "0:1,1:0,0:1"  
 	    
@@ -1976,7 +1976,7 @@ categories: big data
   实际项目中，我们可能由于主题的副本因子设置的问题，需要重新设置副本因子, 或者由于集群的扩展，需要重新设置副本因子。 topic一旦使用又不能轻易删除重建，因此动态增加副本因子就成为最终的选择
 
 	- 示例代码
-	  ```sh  
+	  ```shell  
 	  # 查看原来的副本情况  
 	  kafka-topics.sh --zookeeper centos7-3:2181/mykafka --describe --topic tp_re_01  
 	  Topic:tp_re_01	PartitionCount:5	ReplicationFactor:1	Configs:  
@@ -2135,7 +2135,7 @@ categories: big data
 			  3. index和timeindex在刚使用时会分配10M的大小，当进行 log rolling 后，它会修剪为实际的大小。
 
 			- 代码验证
-			  ```sh  
+			  ```shell  
 			  # 创建主题  
 			  kafka-topics.sh --zookeeper centos7-3:2181/mykafka --create --topic tp_demo_04 --partitions 1 --replication-factor 1 --config segment.bytes=104857600  
 			    
@@ -2156,7 +2156,7 @@ categories: big data
 			  (5)compresscodec:None说明没有指定压缩类型，kafka目前提供了4种可选择，0-None、1- GZIP、2-snappy、3-lz4。  
 			  (6)crc:对所有字段进行校验后的crc值。  
 			    
-			  ```sh  
+			  ```shell  
 			  # 查看前10条消息  
 			  kafka-run-class.sh kafka.tools.DumpLogSegments --files 00000000000000000000.log  --print-data-log | head  
 			  ```
@@ -2178,7 +2178,7 @@ categories: big data
 		    
 		    
 		  可以通过如下命令解析.index 文件  
-		  ```sh  
+		  ```shell  
 		  kafka-run-class.sh kafka.tools.DumpLogSegments --files 00000000000000000000.index  --print-data-log | head  
 		  ```
 
@@ -2669,7 +2669,7 @@ categories: big data
 		  如果通过工具增加了副本因子，那么新增加的副本在赶上Leader副本之前也都是处于失效状态的。  
 		  如果一个Follower副本由于某些原因(比如宕机)而下线，之后又上线，在追赶上Leader副本之前 也是出于失效状态。  
 		  失效副本的分区个数是用于衡量Kafka性能指标的重要部分。Kafka本身提供了一个相关的指标，即 UnderReplicatedPartitions，这个可以通过JMX访问:  
-		  ```sh  
+		  ```shell  
 		  kafka.server:type=ReplicaManager,name=UnderReplicatedPartitions  
 		  ```  
 		  取值范围是大于等于0的整数。注意:如果Kafka集群正在做分区迁移(kafka-reassign-partitions.sh)的时候，这个值也会大于0。
@@ -2789,7 +2789,7 @@ categories: big data
 	  所谓Leader epoch实际上是一对值:<epoch, offset>:  
 	  1. epoch表示Leader的版本号，从0开始，Leader变更过1次，epoch+1  
 	  2. offset对应于该epoch版本的Leader写入第一条消息的offset。因此假设有两对值:  
-	  ```sh  
+	  ```shell  
 	  <0,0>   
 	  <1,120>  
 	  ```  
@@ -2884,7 +2884,7 @@ categories: big data
   且默认提供了`kafka_consumer_groups.sh`脚本供用户查看consumer信息。
 
 	- 实验代码
-	  ```sh  
+	  ```shell  
 	  # 创建一个主题tp_test_01  
 	  kafka-topics.sh --zookeeper centos7-3:2181/mykafka --create --topic tp_test_01 --partitions 5 --replication-factor 1  
 	    
@@ -3003,7 +3003,7 @@ categories: big data
 	- 集群配置kafka
 	  解压好安装包之后修改server.properties  
 	    
-	  ```sh  
+	  ```shell  
 	  vim [kafka_root]/config/server.properties  
 	    
 	  # centos7-3的配置  
@@ -3033,7 +3033,7 @@ categories: big data
 	  
 
 	- 启动集群
-	  ```sh  
+	  ```shell  
 	  # 分别在三台机器上启动  
 	  cd  [kafka_root]  
 	  kafka-server-start.sh config/server.properties  
@@ -3050,7 +3050,7 @@ categories: big data
 	- JMX
 
 		- Kafka开启Jmx端口
-		  ```sh  
+		  ```shell  
 		  vim [kafka_root]/bin/kafka-server-start.sh  
 		    
 		  # 在最上面添加   
@@ -3065,7 +3065,7 @@ categories: big data
 
 		- 使用JConsole链接JMX端口<br>
 ![](/resource/kafka/assets/BEDFFAF0-943E-4B73-AAE0-598DE880870E.png)
-		  ```sh  
+		  ```shell  
 		  # 在终端中输入 `jconsole` 启动  
 		  jconsole  
 		  ```
@@ -3140,7 +3140,7 @@ categories: big data
 		- kafka_eagle安装
 
 			- 下载及解压
-			  ```sh  
+			  ```shell  
 			  # 下载编译好的包  
 			  wget http://pkgs-linux.cvimer.com/kafka-eagle.zip  
 			  # 配置kafka-eagle  
@@ -3152,7 +3152,7 @@ categories: big data
 			  ```  
 			    
 			  配置环境变量   
-			  ```sh  
+			  ```shell  
 			  vim /etc/profile  
 			    
 			  # kakfa eagle  
@@ -3163,7 +3163,7 @@ categories: big data
 			- 环境配置
 			  conf下的配置文件:system-config.properties  
 			    
-			  ```sh  
+			  ```shell  
 			  ######################################  
 			  # 集群的别名，用于在kafka-eagle中进行区分。  
 			  # 可以配置监控多个集群，别名用逗号隔开  
@@ -3185,7 +3185,7 @@ categories: big data
 			  ```  
 			    
 			  再确认一下JMX端口是否开启  
-			  ```sh  
+			  ```shell  
 			  vim [kafka_root]/bin/kafka-server-start.sh  
 			    
 			  # 在最上面添加   
@@ -3215,7 +3215,7 @@ categories: big data
 			- 安装配置Gradle
 			  解压gradle4.8并配置环境变量  
 			    
-			  ```sh  
+			  ```shell  
 			  # gradle  
 			  export GRADLE_HOME=/Users/april/java/gradle-4.8.1  
 			  export GRADLE_USER_HOME=/Users/april/java/gradle-4.8.1/repo  
@@ -3223,7 +3223,7 @@ categories: big data
 			  ```  
 			    
 			  在gradle_home目录里边创建init.gradle 配置下载包的地址  
-			  ```sh  
+			  ```shell  
 			  allprojects {  
 			      repositories {  
 			          maven { url 'https://maven.aliyun.com/repository/public/' }  
@@ -3266,14 +3266,14 @@ categories: big data
 			  ```
 
 				- 查看是否配置成功
-				  ```sh  
+				  ```shell  
 				  gradle -v  
 				  ```
 
 			- Scala的安装和配置
 			  从官网下载安装包之后解压，并配置环境变量  
 			    
-			  ```sh  
+			  ```shell  
 			  # scala  
 			  export SCALA_HOME=/usr/local/opt/scala  
 			  export PATH=$PATH:$SCALA_HOME/bin  
@@ -3283,7 +3283,7 @@ categories: big data
 
 			- 源码操作编译
 			  解压源码，进入目录之后  
-			  ```sh  
+			  ```shell  
 			  gradle  
 			    
 			  # 第二次运行  

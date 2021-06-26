@@ -19,36 +19,39 @@ Sqoop下载地址:http://www.apache.org/dyn/closer.lua/sqoop/
 
 将下载的安装包 sqoop-1.4.6.bin__hadoop-2.0.4-alpha.tar.gz 上传到虚拟机中; 解压缩软件包;  
   
-```sh  
+```shell  
 tar zxvf sqoop-1.4.7.bin__hadoop-2.6.0.tar.gz  
 mv sqoop-1.4.7.bin__hadoop-2.6.0/ ../servers/sqoop-1.4.7/  
 ```
 
 ### 2. 增加环境变量，并使其生效
 
-```sh  
+```shell  
 vi /etc/profile  
   
 # 增加以下内容  
-export SQOOP_HOME=/opt/lagou/servers/sqoop-1.4.7 export PATH=$PATH:$SQOOP_HOME/bin  
+export SQOOP_HOME=/opt/lagou/servers/sqoop-1.4.7 
+export PATH=$PATH:$SQOOP_HOME/bin  
   
 source /etc/profile  
 ```
 
 ### 3. 创建、修改配置文件
 
-```sh  
+```shell  
 # 配置文件位置 $SQOOP_HOME/conf;要修改的配置文件为 sqoop-env.sh cp sqoop-env-template.sh sqoop-env.sh  
   
 vi sqoop-env.sh  
   
 # 在文件最后增加以下内容  
-export HADOOP_COMMON_HOME=/opt/lagou/servers/hadoop-2.9.2 export HADOOP_MAPRED_HOME=/opt/lagou/servers/hadoop-2.9.2 export HIVE_HOME=/opt/lagou/servers/hive-2.3.7  
+export HADOOP_COMMON_HOME=/opt/lagou/servers/hadoop-2.9.2 
+export HADOOP_MAPRED_HOME=/opt/lagou/servers/hadoop-2.9.2 
+export HIVE_HOME=/opt/lagou/servers/hive-2.3.7  
 ```
 
 ### 4. 拷贝JDBC驱动程序
 
-```sh  
+```shell  
 # 拷贝jdbc驱动到sqoop的lib目录下(备注:建立软链接也可以)  
   
 ln -s /opt/lagou/servers/hive-2.3.7/lib/mysql-connector-java-5.1.46.jar /opt/lagou/servers/sqoop-1.4.7/lib/  
@@ -58,7 +61,7 @@ ln -s /opt/lagou/servers/hive-2.3.7/lib/mysql-connector-java-5.1.46.jar /opt/lag
 
 将 $HIVE_HOME/lib 下的 hive-common-2.3.7.jar，拷贝到 $SQOOP_HOME/lib 目录下。如不拷贝在MySQL往Hive导数据的时候将会出现错误: ClassNotFoundException: org.apache.hadoop.hive.conf.HiveConf  
   
-```sh  
+```shell  
 # 硬拷贝 和 建立软链接都可以，选择一个执行即可。下面是硬拷贝  
 cp $HIVE_HOME/lib/hive-common-2.3.7.jar $SQOOP_HOME/lib/  
   
@@ -68,14 +71,13 @@ ln -s /opt/lagou/servers/hive-2.3.7/lib/hive-common-2.3.7.jar /opt/lagou/servers
   
 将 $HADOOP_HOME/share/hadoop/tools/lib/json-20170516.jar 拷贝到 $SQOOP_HOME/lib/ 目录下;否则在创建sqoop job时会报: java.lang.NoClassDefFoundError: org/json/JSONObject  
   
-```sh  
-cp $HADOOP_HOME/share/hadoop/tools/lib/json-20170516.jar  
-$SQOOP_HOME/lib/  
+```shell  
+cp $HADOOP_HOME/share/hadoop/tools/lib/json-20170516.jar  $SQOOP_HOME/lib/  
 ```
 
 ### 6. 安装验证
 
-```sh  
+```shell  
 #查看版本  
 sqoop version  
   
@@ -145,7 +147,7 @@ call batchInsertTestData(1, 100);
 ### 导入数据
 
 - 导入全部数据
-  ```sh  
+  ```shell  
   sqoop import \  
   --connect jdbc:mysql://centos7-3:3306/sqoop \  
   --username hive \  
@@ -163,7 +165,7 @@ call batchInsertTestData(1, 100);
   * fields-terminated-by:HDFS文件中数据的分隔符;
 
 - 导入查询数据
-  ```sh  
+  ```shell  
   sqoop import \  
   --connect jdbc:mysql://centos7-3:3306/sqoop \  
   --username hive \  
@@ -179,7 +181,7 @@ call batchInsertTestData(1, 100);
   * 如果query后使用的是双引号，则$CONDITIONS前必须加转移符，防止shell识 别为自己的变量
 
 - 导入指定的列
-  ```sh  
+  ```shell  
   sqoop import \  
   --connect jdbc:mysql://centos7-3:3306/sqoop \  
   --username hive \  
@@ -195,7 +197,7 @@ call batchInsertTestData(1, 100);
 
 - 导入查询数据(使用关键字where)
   `--where "price>=68"`  
-  ```sh  
+  ```shell  
   sqoop import \  
   --connect jdbc:mysql://centos7-3:3306/sqoop \  
   --username hive \  
@@ -211,7 +213,7 @@ call batchInsertTestData(1, 100);
 - 启动多个Map Task导入数据
   在 goodtbl 中增加数据:`call batchInsertTestData(1000000)`;  
     
-  ```sh  
+  ```shell  
   # 自用字符串作为partition依据  
   sqoop import -Dorg.apache.sqoop.splitter.allow_text_splitter=true \  
   --connect jdbc:mysql://centos7-3:3306/sqoop \  
@@ -258,7 +260,7 @@ call batchInsertTestData(1, 100);
   fields terminated by "\t";  
   ```  
     
-  ```sh  
+  ```shell  
   sqoop import \  
   --connect jdbc:mysql://centos7-3:3306/sqoop \  
   --username hive \  
@@ -291,7 +293,7 @@ CREATE TABLE sqoop.goodtbl2(
   create_time date);  
 ```  
   
-```sh  
+```shell  
 sqoop export \  
 --connect jdbc:mysql://centos7-3:3306/sqoop \  
 --username hive \  
@@ -338,7 +340,7 @@ CDC大体分为两种:侵入式和非侵入式。侵入式指CDC操作会给源�
 			  ```
 
 			- 2、 将数据导入Hive
-			  ```sh  
+			  ```shell  
 			  sqoop import \  
 			  --connect jdbc:mysql://centos7-3:3306/sqoop \  
 			  --username hive --password 12345678 \  
@@ -358,12 +360,12 @@ CDC大体分为两种:侵入式和非侵入式。侵入式指CDC操作会给源�
 			- 3、 检查hive表中是否有数据，有多少条数据
 
 			- 4、 再向MySQL中加入1000条数据，编号从200开始
-			  ```sh  
+			  ```shell  
 			  call batchInsertTestData(200, 1000);  
 			  ```
 
 			- 5、 再次执行增量导入，将数据从 MySQL 导入 Hive 中;此时要将 last-value 改为 100
-			  ```sh  
+			  ```shell  
 			  sqoop import \  
 			  --connect jdbc:mysql://centos7-3:3306/sqoop \  
 			  --username hive --password 12345678 \  
@@ -383,7 +385,7 @@ CDC大体分为两种:侵入式和非侵入式。侵入式指CDC操作会给源�
 
 			- 1、 创建口令文件
 
-			  ```sh  
+			  ```shell  
 			  echo -n "12345678" > sqoopPWD.pwd  
 			  hdfs dfs -mkdir -p /sqoop/pwd  
 			  hdfs dfs -put sqoopPWD.pwd /sqoop/pwd  
@@ -394,7 +396,7 @@ CDC大体分为两种:侵入式和非侵入式。侵入式指CDC操作会给源�
 
 			- 2、 创建 sqoop job
       
-			  ```sh  
+			  ```shell  
 			  # 创建 sqoop job  
 			  sqoop job --create myjob1 -- import \  
 			  --connect jdbc:mysql://centos7-3:3306/sqoop?useSSL=false \  
@@ -422,7 +424,7 @@ CDC大体分为两种:侵入式和非侵入式。侵入式指CDC操作会给源�
 			  ```
 
 			- 3、 执行job
-			  ```sh  
+			  ```shell  
 			  sqoop job -exec myjob1  
 			  ```
 
@@ -433,7 +435,7 @@ CDC大体分为两种:侵入式和非侵入式。侵入式指CDC操作会给源�
 			  缺省情况下元数据保存在 ~/.sqoop/  
 			  其中，metastore.db.script 文件记录了对last-value的更新操作:  
 			    
-			  ```sh  
+			  ```shell  
 			  cat metastore.db.script |grep incremental.last.value  
 			  ```
 

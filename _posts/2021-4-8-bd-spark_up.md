@@ -237,7 +237,8 @@ categories: big data
 	  ./start-all.sh  
 	  ```  
 	    
-	  分别在centos7-1、centos7-2、centos7-3上执行 jps，可以发现: centos7-1:Master、Worker  
+	  分别在centos7-1、centos7-2、centos7-3上执行 jps，可以发现: <br>
+	  centos7-1:Master、Worker  
 	  centos7-2:Worker  
 	  centos7-3:Worker  
 	  此时 Spark 运行在 Standalone 模式下。  
@@ -480,7 +481,7 @@ categories: big data
 		  * yarn-cluster。Driver程序运行在由RM启动的 AppMaster中，适用于生产环境  
 		  * 二者的主要区别:Driver在哪里
 
-			- 相关配置
+			- 相关配置<br>
 			  1、关闭 Standalone 模式下对应的服务;开启 hdfs、yarn、historyserver 服务   
 			  2、修改 yarn-site.xml 配置  
 			  在 $HADOOP_HOME/etc/hadoop/yarn-site.xml 中增加，分发到集群，重启 yarn 服务  

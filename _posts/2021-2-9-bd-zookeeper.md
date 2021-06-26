@@ -56,13 +56,13 @@ Zookeeper安装方式有三种，单机模式和集群模式以及伪集群模�
   
 下载完成后，将zookeeper压缩包 zookeeper-3.4.14.tar.gz上传到linux系统/opt/lagou/software 解压 压缩包  
   
-```sh  
+```shell  
 tar -zxvf zookeeper-3.4.14.tar.gz -C ../servers/  
 ```
 
 ### 2. 修改配置文件创建data与log目录
 
-```sh  
+```shell  
 #创建zk存储数据目录  
 mkdir -p /opt/lagou/servers/zookeeper-3.4.14/data  
   
@@ -96,7 +96,7 @@ autopurge.purgeInterval=1
 
 在zookeeper的 data 目录下创建一个 myid 文件，内容为1，这个文件就是记录每个服务器的ID  
   
-```sh  
+```shell  
 cd /opt/lagou/servers/zookeeper-3.4.14/data  
 echo 1 > myid  
 ```
@@ -105,11 +105,11 @@ echo 1 > myid
 
 安装包分发并修改myid的值  
   
-```sh  
+```shell  
 rsync-script /opt/lagou/servers/zookeeper-3.4.14  
 ```  
   
-```sh  
+```shell  
 # centos7-2  
 echo 2 >/opt/lagou/servers/zookeeper-3.4.14/data/myid  
   
@@ -122,7 +122,7 @@ echo 3 >/opt/lagou/servers/zookeeper-3.4.14/data/myid
 
 启动命令(三个节点都要执行)  
   
-```sh  
+```shell  
 /opt/lagou/servers/zookeeper-3.4.14/bin/zkServer.sh start  
   
 # 查看状态  
@@ -135,7 +135,7 @@ echo 3 >/opt/lagou/servers/zookeeper-3.4.14/data/myid
 ### 6. 编写集群启动停止脚本<br>
 ![](/resource/zookeeper/assets/40676110-6F1B-40E4-B4F2-921E79DDC209.png)
 
-```shell  
+```shellell  
 vim zk.sh  
   
 #!/bin/sh  
@@ -153,7 +153,7 @@ ssh $host "source /etc/profile; /opt/lagou/servers/zookeeper-3.4.14/bin/zkServer
 done  
 ```  
   
-```sh  
+```shell  
 zk.sh start  
 zk.sh status  
 zk.sh stop  
@@ -197,7 +197,7 @@ Zookeeper 节点类型可以分为三大类:
 ![](/resource/zookeeper/assets/1286FCA2-C163-4B18-89EE-EC014DE7DCB3.png)
 
 整个 ZNode 节点内容包括两部分:节点数据内容和节点状态信息。数据内容是空，其他的属于状态信息  
-```sh  
+```shell  
 cZxid 就是 Create ZXID，表示节点被创建时的事务ID。  
 ctime 就是 Create Time，表示节点创建时间。  
 mZxid 就是 Modified ZXID，表示节点最后一次被修改时的事务ID。  
@@ -230,7 +230,7 @@ Zookeeper的Watcher机制主要包括客户端线程、客户端WatcherManager�
 - 启动客户端
   在ZooKeeper_home/bin 目录下  
     
-  ```sh  
+  ```shell  
   ./zkcli.sh 连接本地的zookeeper服务器  
   ./zkCli.sh -server ip:port(2181) 连接指定的服务器  
   ```
@@ -283,7 +283,7 @@ ZkClient是Github上一个开源的zookeeper客户端，在Zookeeper原生API接
   ```
 
 - 2. 添加log4j.properties到resources
-  ```sh  
+  ```shell  
   log4j.rootLogger=INFO, stdout  
   log4j.appender.stdout=org.apache.log4j.ConsoleAppender  
   log4j.appender.stdout.layout=org.apache.log4j.PatternLayout  
@@ -536,14 +536,14 @@ https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-hdfs/HDFSHighAv
 ![](/resource/zookeeper/assets/C6841046-2755-42A4-B8D5-85102041C86C.png)
 
 - 启动Zookeeper集群
-  ```sh  
+  ```shell  
   zk.sh start  
   ```
 
 - 配置HDFS-HA集群
 
 	- 删除原集群data目录
-	  ```sh  
+	  ```shell  
 	  rm -rf /opt/lagou/servers/ha/hadoop-2.9.2/data  
 	  ```
 
@@ -680,36 +680,36 @@ https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-hdfs/HDFSHighAv
 	  ```
 
 	- 拷贝配置好的hadoop环境到其他节点
-	  ```sh  
+	  ```shell  
 	  rsync-script /opt/lagou/servers/ha/hadoop-2.9.2/  
 	  ```
 
 - 启动HDFS-HA集群
 
 	- 启动各个JournalNode节点
-	  ```sh  
+	  ```shell  
 	  /opt/lagou/servers/ha/hadoop-2.9.2/sbin/hadoop-daemon.sh start journalnode  
 	  ```
 
 	- 在[nn1]上，对其进行格式化，并启动
-	  ```sh  
+	  ```shell  
 	  /opt/lagou/servers/ha/hadoop-2.9.2/bin/hdfs namenode -format  
 	    
 	  /opt/lagou/servers/ha/hadoop-2.9.2/sbin/hadoop-daemon.sh start namenode  
 	  ```
 
 	- 在[nn2]上，同步nn1的元数据信息
-	  ```sh  
+	  ```shell  
 	  /opt/lagou/servers/ha/hadoop-2.9.2/bin/hdfs namenode -bootstrapStandby  
 	  ```
 
 	- 在[nn1]上初始化zkfc
-	  ```sh  
+	  ```shell  
 	  /opt/lagou/servers/ha/hadoop-2.9.2/bin/hdfs zkfc -formatZK  
 	  ```
 
 	- 在[nn1]上，启动集群
-	  ```sh  
+	  ```shell  
 	  /opt/lagou/servers/ha/hadoop-2.9.2/sbin/start-dfs.sh  
 	  ```
 
@@ -781,12 +781,12 @@ https://hadoop.apache.org/docs/stable/hadoop-yarn/hadoop-yarn-site/ResourceManag
 		  ```
 
 		- 同步更新其他节点的配置信息
-		  ```sh  
+		  ```shell  
 		  rsync-script yarn-site.xml  
 		  ```
 
 		- 启动yarn
-		  ```sh  
+		  ```shell  
 		  # 在rm1  
 		  /opt/lagou/servers/ha/hadoop-2.9.2/sbin/start-yarn.sh  
 		    
