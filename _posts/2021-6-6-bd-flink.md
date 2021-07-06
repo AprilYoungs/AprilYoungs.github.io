@@ -611,7 +611,7 @@ Step9、集群模式下运行example测试
   ```shell  
   vim /etc/profile   
     
-  export HADOOP_CONF_DIR=$HADOOP_HOME  
+  export HADOOP_CONF_DIR=$HADOOP_HOME/etc/hadoop
   export YARN_CONF_DIR=$HADOOP_HOME/etc/hadoop  
   export HADOOP_CLASSPATH=`hadoop classpath`  
   ```  
@@ -648,7 +648,7 @@ Step9、集群模式下运行example测试
   **启动作业**：  
     
   ```shell  
-  bin/flink run -m yarn-cluster -yn 2 -yjm 1024 -ytm 1024 -c WordCount /export/servers/flink/examples/batch/WordCount.jar  
+  bin/flink run -m yarn-cluster -yjm 1024 -ytm 1024 -c WordCount /export/servers/flink/examples/batch/WordCount.jar  
     
   # -m jobmanager的地址  
   # -yn 表示TaskManager的个数  

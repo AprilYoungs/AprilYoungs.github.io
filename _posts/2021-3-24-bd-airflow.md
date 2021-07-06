@@ -54,7 +54,7 @@ Airflow 是 Airbnb 开源的一个用 Python 编写的调度工具。 Airflow将
 
 ### Python环境准备
 
-```sh  
+```shell  
 # 卸载 mariadb  
 rpm -qa | grep mariadb   
 mariadb-libs-5.5.65-1.el7.x86_64   
@@ -98,7 +98,7 @@ python -V
 
 ### 安装Airflow
 
-```sh  
+```shell  
 # 设置目录(配置文件)  
 # 添加到配置文件/etc/profile。未设置是缺省值为 ~/airflow  
 export AIRFLOW_HOME=/opt/servers/airflow  
@@ -126,7 +126,7 @@ flush privileges;
 
 ### 修改Airflow DB配置
 
-```sh  
+```shell  
 # python3 环境中执行  
 pip install mysqlclient==1.4.6   
 pip install SQLAlchemy==1.3.15  
@@ -136,7 +136,7 @@ airflow initdb
   
 修改 $AIRFLOW_HOME/airflow.cfg:  
   
-```sh  
+```shell  
  # 约 75 行  
 sql_alchemy_conn = mysql://airflow:12345678@centos7-2:3306/airflowcentos72  
   
@@ -146,13 +146,13 @@ airflow initdb
 
 ### 安装密码模块
 
-```sh  
+```shell  
 pip install apache-airflow[password]  
 ```  
   
 修改 airflow.cfg 配置文件(第一行修改，第二行增加):  
   
-```sh  
+```shell  
 # 约 281 行  
 [webserver]  
   
@@ -182,7 +182,7 @@ exit()
 
 ### 启动服务
 
-```sh  
+```shell  
 # 备注:要先进入python3的运行环境   
   
 cd /usr/local/python3.6/bin/   
@@ -202,7 +202,7 @@ airflow webserver -D
 
 ### 停止airflow webserver
 
-```sh  
+```shell  
 # 关闭 airflow webserver 对应的服务  
 ps -ef | grep 'airflow-webserver' | grep -v 'grep' | awk '{print $2}' | xargs -i kill -9 {}  
   
@@ -219,7 +219,7 @@ rm -rf *.pid
 1. 停止服务  
 2. 修改文件 $AIRFLOW_HOME/airflow.cfg:  
 
-```sh  
+```shell  
 # 修改文件第 136 行  
 load_examples = False  
   

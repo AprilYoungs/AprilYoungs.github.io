@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Kfaka--高吞吐消息中间件"
+title:  "Kafka--高吞吐消息中间件"
 date:   2021-3-6
 categories: big data
 ---
