@@ -420,6 +420,51 @@ categories: big data
 			  }  
 			    
 			  ```
+			  - 运行日志打印,有时候出错的时候找不到北.
+			  添加依赖
+
+			```xml
+
+			   <!--log4j2到slf4j桥梁-->
+        		<dependency>
+            		<groupId>org.slf4j</groupId>
+            		<artifactId>slf4j-log4j12</artifactId>
+            		<version>1.7.30</version>
+        		</dependency>
+        		<dependency>
+            		<groupId>org.apache.logging.log4j</groupId>
+            		<artifactId>log4j-slf4j-impl</artifactId>
+            		<version>2.9.1</version>
+        		</dependency>
+
+        		<!--log4j2 begin-->
+        		<dependency>
+            		<groupId>org.apache.logging.log4j</groupId>
+            		<artifactId>log4j-api</artifactId>
+            		<version>2.11.0</version>
+        		</dependency>
+        		<dependency>
+            		<groupId>org.apache.logging.log4j</groupId>
+            		<artifactId>log4j-core</artifactId>
+            		<version>2.11.0</version>
+        		</dependency>
+        		<!--log4j2 end-->
+			```
+
+			  在resources文件夹下面添加log4j.properties
+
+			  ```shell
+
+			  log4j.rootLogger=DEBUG, stdout  
+			  log4j.appender.stdout=org.apache.log4j.ConsoleAppender  
+			  log4j.appender.stdout.layout=org.apache.log4j.PatternLayout  
+			  log4j.appender.stdout.layout.ConversionPattern=%d %p [%c] - %m%n  
+			  log4j.appender.logfile=org.apache.log4j.FileAppender  
+			  log4j.appender.logfile.File=target/spring.log  
+			  log4j.appender.logfile.layout=org.apache.log4j.PatternLayout  
+			  log4j.appender.logfile.layout.ConversionPattern=%d %p [%c] - %m%n  
+			  ```
+
 
 	- 消费者
 	  消息消费:  

@@ -1216,7 +1216,7 @@ MVVM的实践，分离View和Model
 	          <input type="button" value="生成笑话" @click="generateJoke"><br>  
 	          <p>  
 	              <ul v-for="(joke, index) in jokes">  
-	                  <li>{{index+1}}.{{joke}}</li>  
+	                  <li>\{\{index+1\}\}.\{\{joke\}\}</li>  
 	              </ul>  
 	          </p>  
 	      </div>  
