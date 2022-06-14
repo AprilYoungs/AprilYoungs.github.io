@@ -295,8 +295,7 @@ categories: big data
 	  备注:此时可能有错误。主要原因是配置了日志聚合(即是用来了hdfs，但hdfs服务 关闭了)，关闭该选项即可  
 	  ```shell  
 	  # spark.eventLog.enabled true  
-	  # spark.eventLog.dir hdfs://centos7-1:9000/spark-  
-	  eventlog  
+	  # spark.eventLog.dir hdfs://centos7-1:9000/spark-eventlog  
 	  ```  
 	    
 	  2、使用 jps 检查，发现一个 SparkSubmit 进程 这个SparkSubmit进程又当爹、又当妈。既是客户提交任务的Client进程、又是  
@@ -360,6 +359,7 @@ categories: big data
 
 			- 运行模式(cluster / client)
 ![](/resource/spark_up/assets/BF81E130-0BAA-4C3D-8D0D-916C69430255.png)
+<br>
 			  最大的区别:Driver运行在哪里;client是缺省的模式，能看见返回结果，适合调 试;cluster与此相反;  
 			  * Client模式(缺省)。Driver运行在提交任务的Client，此时可以在Client模式 下，看见应用的返回结果，适合交互、调试   
 			  * Cluster模式。Driver运行在Spark集群中，看不见程序的返回结果，合适生产环境
