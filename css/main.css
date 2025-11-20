@@ -1,226 +1,247 @@
+:root {
+  --bg-color: #ffffff;
+  --text-color: #333333;
+  --primary-color: #007bff;
+  --secondary-color: #6c757d;
+  --accent-color: #0056b3;
+  --border-color: #e0e0e0;
+  --card-bg: #f8f9fa;
+  --header-font: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --body-font: 'Georgia', serif;
+  --spacing-unit: 1rem;
+  --container-width: 800px;
+}
+
+body.dark-theme {
+  --bg-color: #121212;
+  --text-color: #e0e0e0;
+  --primary-color: #90caf9;
+  --secondary-color: #b0bec5;
+  --accent-color: #64b5f6;
+  --border-color: #333333;
+  --card-bg: #1e1e1e;
+}
+
 body {
-    margin: 50px;
-    background: #fffff9
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: var(--body-font);
+  line-height: 1.6;
+  margin: 0;
+  padding: 0;
+  transition: background-color 0.3s, color 0.3s;
 }
 
-nav ul,
-footer ul {
-    font-family: 'Helvetica', 'Arial', 'Sans-Serif';
-    padding: 0px;
-    list-style: none;
-    font-weight: bold;
-}
-
-nav ul li,
-footer ul li {
-    display: inline;
-    margin-right: 20px;
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--header-font);
+  color: var(--text-color);
+  margin-top: 2rem;
+  margin-bottom: 1rem;
 }
 
 a {
-    text-decoration: none;
-    color: #08b;
-}
-
-a:active {
-    test: expression(target="_blank");
+  color: var(--primary-color);
+  text-decoration: none;
+  transition: color 0.2s;
 }
 
 a:hover {
-    text-decoration: underline;
+  color: var(--accent-color);
+  text-decoration: underline;
 }
 
-h1 {
-    font-size: 3.5em;
-    font-family: 'Helvetica', 'Arial', 'Sans-Serif';
+.container {
+  max-width: var(--container-width);
+  margin: 0 auto;
+  padding: 0 var(--spacing-unit);
 }
 
-h2 {
-    font-size: 2.9em;
-    font-family: 'Helvetica', 'Arial', 'Sans-Serif';
+/* Navigation */
+nav {
+  background-color: var(--bg-color);
+  border-bottom: 1px solid var(--border-color);
+  padding: 1rem 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
-h3 {
-    font-size: 2.5em;
-    font-family: 'Helvetica', 'Arial', 'Sans-Serif';
+nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
 }
 
-h4 {
-    font-size: 2.3em;
-    font-family: 'Helvetica', 'Arial', 'Sans-Serif';
+nav li {
+  margin-left: 1.5rem;
 }
 
-h5 {
-    font-size: 1.8em;
-    font-family: 'Helvetica', 'Arial', 'Sans-Serif';
+nav a {
+  font-family: var(--header-font);
+  font-weight: bold;
+  color: var(--text-color);
 }
 
-p {
-    font-size: 1.5rem;
-    line-height: 2.0rem;
-    color: #333;
+/* Theme Toggle */
+#theme-toggle {
+  background: none;
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: var(--header-font);
+  margin-left: 1.5rem;
 }
 
-pre {
-    font-size: 1.2rem;
-    line-height: 2.0rem;
-    color: #333;
+#theme-toggle:hover {
+  background-color: var(--card-bg);
 }
 
-li {
-    font-size: 1.5rem;
-    line-height: 2.0rem;
-}
-
-ul.posts {
-    margin: 20px auto 40px;
-    font-size: 1.5em;
-    text-align: center;
-}
-
+/* Footer */
 footer {
-    border-top: 1px solid #d5d5d5;
-    font-size: .8em;
+  margin-top: 4rem;
+  padding: 2rem 0;
+  border-top: 1px solid var(--border-color);
+  text-align: center;
+  font-family: var(--header-font);
+  font-size: 0.9rem;
 }
 
-span {
-    font-size: 0.9em;
-    line-height: 1.4em;
-    color: #aaa;
+footer ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
 }
 
-html body blockquote {
-    margin: 16px 0;
-    font-size: inherit;
-    padding: 0 15px;
-    color: #5c5c5c;
-    border-left: 4px solid #d6d6d6;
-    background-color: #F2F2F2;
+/* Posts List (Home) */
+.posts {
+  list-style: none;
+  padding: 0;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.post-item {
+  padding: 1.5rem 0;
+  border-bottom: 1px solid var(--border-color);
+  transition: transform 0.2s ease;
+}
+
+.post-item:last-child {
+  border-bottom: none;
+}
+
+.post-item:hover {
+  transform: translateX(5px);
+}
+
+.post-item h3 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  font-size: 1.5rem;
+}
+
+.post-meta {
+  font-size: 0.9rem;
+  color: var(--secondary-color);
+  margin-bottom: 0.5rem;
+  display: block;
+  font-family: var(--header-font);
+}
+
+.post-excerpt {
+  color: var(--text-color);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+/* Post Layout */
+.post-header {
+  margin-bottom: 2rem;
+  text-align: center;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.post-title {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.post-body {
+  font-size: 1.1rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.post-body img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 1.5rem auto;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Table of Contents */
+.toc-container {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  font-size: 0.95rem;
+}
+
+.toc-container h3 {
+  display: none;
+}
+
+.toc-container ul {
+  list-style: disc;
+  padding-left: 1.5rem;
+}
+
+.toc-container ul ul {
+  padding-left: 1.5rem;
+  margin-top: 0.5rem;
+  list-style: circle;
+}
+
+.toc-container li {
+  margin-bottom: 0.5rem;
+}
+
+.toc-container a {
+  color: var(--text-color);
+  text-decoration: none;
+}
+
+.toc-container a:hover {
+  color: var(--primary-color);
+  text-decoration: underline;
+}
+
+/* Code Blocks */
+pre {
+  background-color: var(--card-bg);
+  padding: 1rem;
+  border-radius: 4px;
+  overflow-x: auto;
 }
 
 code {
-    font-family: Menlo, Monaco, Consolas, 'Courier New', monospace;
-    font-size: 1em !important;
-    color: rgb(182, 57, 57);
-    background-color: #f0f0f0;
-    border-radius: 3px;
-    padding: .2em 0;
-}
-
-img {
-    width: auto;
-    max-width: 100%;
-    margin: 0 auto;
-    /* width: auto; */
-}
-
-div .center {
-    text-align: center;
-}
-
-ul.posts li {
-    list-style: none;
-}
-
-blockquote code {
-    background-color: #d0d0d0;
-}
-
-html body table td,
-html body table th {
-    border: 1px solid #d6d6d6;
-    padding: 6px 13px;
-}
-
-td {
-    display: table-cell;
-    vertical-align: inherit;
-    text-align: center;
-}
-
-html body table {
-    margin: 10px 0 15px 0;
-    border-collapse: collapse;
-    border-spacing: 0;
-    display: block;
-    width: 100%;
-    overflow: auto;
-    word-break: normal;
-    word-break: keep-all;
-}
-
-table {
-    border-collapse: separate;
-    border-spacing: 2px;
-}
-
-@media only screen and (max-device-width: 800px) {
-    /* styles for mobile browsers smaller than 480px; (iPhone) */
-    h1 {
-        font-size: 4.5rem;
-    }
-    h2 {
-        font-size: 4.0rem;
-    }
-    h3 {
-        font-size: 3.25rem;
-    }
-    h4 {
-        font-size: 2.95rem;
-    }
-    p {
-        font-size: 2.5rem;
-        line-height: 3.5rem;
-    }
-    li {
-        font-size: 2.5rem;
-        line-height: 3.5rem;
-    }
-    ul.posts {
-        font-size: 3.254em;
-        padding-inline-start: 0px
-    }
-    footer {
-        font-size: 2.2rem;
-    }
-    span {
-        font-size: 2.35rem;
-        line-height: 2.35rem;
-    }
-    code {
-        font-size: 2.4rem !important;
-    }
-    img {
-        width: auto !important;
-        max-width: 100%;
-        margin: 0 auto;
-        /* width: auto; */
-    }
-}
-
-@media only screen and (min-width: 960px) {
-    /* styles for browsers larger than 960px; */
-}
-
-@media only screen and (min-width: 1440px) {
-    /* styles for browsers larger than 1440px; */
-}
-
-@media only screen and (min-width: 2000px) {
-    /* for sumo sized (mac) screens */
-}
-
-@media only screen and (device-width: 768px) {
-    /* default iPad screens */
-}
-
-
-/* different techniques for iPad screening */
-
-@media only screen and (min-device-width: 481px) and (max-device-width: 1024px) and (orientation:portrait) {
-    /* For portrait layouts only */
-}
-
-@media only screen and (min-device-width: 481px) and (max-device-width: 1024px) and (orientation:landscape) {
-    /* For landscape layouts only */
+  font-family: 'Courier New', Courier, monospace;
 }

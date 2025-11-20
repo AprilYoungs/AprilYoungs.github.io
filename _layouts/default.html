@@ -1,34 +1,40 @@
 <!DOCTYPE html>
-	<html>
-		<head>
-			<title>{{ page.title }}</title>
-			<!-- link to main stylesheet -->
-			<!-- <meta name="viewport" content="width=device-width, initial-scale=0.5,maximum-scale=1.0, user-scalable=no" /> -->
-			<link rel="stylesheet" type="text/css" href="/css/main.css">
-			<link rel="stylesheet" type="text/css" href="/css/prism.css">
-		</head>
-		<body>
-			<script src="/css/prism.js"></script>
-			<nav>
-	    		<ul>
-	        		<li><a href="/">Home</a></li>
-		        	<!-- <li><a href="/about">About</a></li> -->
-	        		<!-- <li><a href="/cv">CV</a></li> -->
-							<!-- <li><a href="/not_finish_blog">not_finish</a></li> -->
-	        		<li><a href="/about">About</a></li>
-	    		</ul>
-			</nav>
-			<div class="container">
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page.title }}</title>
+    <link rel="stylesheet" type="text/css" href="/css/main.css">
+    <link rel="stylesheet" type="text/css" href="/css/prism.css">
+</head>
+<body>
+    <nav>
+        <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
+            <a href="/" style="font-size: 1.5rem; font-weight: bold; text-decoration: none;">April's Blog</a>
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="/about">About</a></li>
+                <li><button id="theme-toggle">Toggle Theme</button></li>
+            </ul>
+        </div>
+    </nav>
 
-			{{ content }}
+    <main class="container">
+        {{ content }}
+    </main>
 
-			</div><!-- /.container -->
-			<footer>
-	    		<ul>
-						<li><a href="mailto:yangchangjun010@hotmail.com">email</a></li>
-						<li><a href="https://github.com/AprilYoungs">github.com/AprilYoungs</a></li>
-						<li><a href="https://www.linkedin.com/in/aprilyoung-593821169">linkedin.com</a></li>
-				</ul>
-			</footer>
-		</body>
-	</html>
+    <footer>
+        <div class="container">
+            <ul>
+                <li><a href="mailto:yangchangjun010@hotmail.com">Email</a></li>
+                <li><a href="https://github.com/AprilYoungs">GitHub</a></li>
+                <li><a href="https://www.linkedin.com/in/aprilyoung-593821169">LinkedIn</a></li>
+            </ul>
+            <p style="margin-top: 1rem; color: var(--secondary-color);">&copy; {{ site.time | date: '%Y' }} April Young</p>
+        </div>
+    </footer>
+
+    <script src="/css/prism.js"></script>
+    <script src="/js/theme-toggle.js"></script>
+</body>
+</html>

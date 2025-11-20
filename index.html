@@ -2,10 +2,34 @@
 layout: default
 title: April's Blog
 ---
-	<h1>{{ page.title }}</h1>
-	<ul class="posts",  style="text-align:left">
-
-	  {% for post in site.posts %}
-	    <li><span>{{ post.date | date_to_string }}</span> » <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a></li>
-	  {% endfor %}
+<div class="home">
+	<h1 style="margin-bottom: 2rem; text-align: center;">Latest Posts</h1>
+	<ul class="posts">
+		{% for post in site.posts %}
+		<li class="post-item">
+			<span class="post-meta">{{ post.date | date: "%b %-d, %Y" }}</span>
+			<h3>
+				<a class="post-link" href="{{ post.url | relative_url }}">{{ post.title | escape }}</a>
+			</h3>
+			{% if post.description %}
+			<p class="post-excerpt">{{ post.description }}</p>
+			{% else {% capture newline %}
+			{% endcapture %}
+			{% assign content_lines = post.content | strip_html | split: newline %}
+			{% assign excerpt_text = "" %}
+			{% for line in content_lines %}
+			{% assign stripped_line = line | strip %}
+			{% if stripped_line != "" %}
+			{% if stripped_line == post.title %}
+			{% continue %}
+			{% endif %}
+			{% assign excerpt_text = excerpt_text | append: stripped_line | append: " " %}
+			{% endif %}
+			{% if excerpt_text.size > 200 %}{% break %}{% endif %}
+			{% endfor %}
+			<p class="post-excerpt">{{ excerpt_text | truncatewords: 30 }}</p>
+			{% endif %}
+		</li>
+		{% endfor %}
 	</ul>
+</div>
